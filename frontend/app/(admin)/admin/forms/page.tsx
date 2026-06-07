@@ -193,15 +193,17 @@ export default function AdminFormsPage() {
                         </Button>
 
                         <DropdownMenu>
-                          <DropdownMenuTrigger>
-                            <Button
-                              variant="outline"
-                              className="neo-btn bg-surface hover:bg-neutral-100 h-9 px-3 text-xs"
-                              id={`actions-menu-${form.slug}`}
-                            >
-                              ⚙️ Actions
-                            </Button>
-                          </DropdownMenuTrigger>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="outline"
+                                className="neo-btn bg-surface hover:bg-neutral-100 h-9 px-3 text-xs"
+                                id={`actions-menu-${form.slug}`}
+                              >
+                                ⚙️ Actions
+                              </Button>
+                            }
+                          />
                           <DropdownMenuContent className="rounded-none neo-border bg-background">
                             <DropdownMenuItem
                               onClick={() => router.push(`/admin/forms/${form.id}/submissions`)}
