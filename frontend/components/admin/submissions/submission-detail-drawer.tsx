@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SubmissionRead, FormFieldRead, FileUploadRead, api } from "@/lib/api";
 import { StatusBadge, ALL_STATUSES } from "./status-badge";
 import { Button } from "@/components/ui/button";
@@ -25,13 +25,16 @@ export function SubmissionDetailDrawer({
   const [adminNotes, setAdminNotes] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Reset local state when submission changes
-  if (submission && selectedStatus === "" && submission.status) {
-    setSelectedStatus(submission.status);
-    setAdminNotes(submission.admin_notes ?? "");
-  }
+  // Reset local state whenever the active submission changes
+  useEffect(() => {
+    if (submission) {
+      setSelectedStatus(submission.status);
+      setAdminNotes(submission.admin_notes ?? "");
+    }
+  }, [submission?.id]);
 
   if (!submission) return null;
+
 
   const handleSaveStatus = async () => {
     if (!token) return;

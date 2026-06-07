@@ -1,7 +1,5 @@
 "use client";
 
-import { SubmissionRead } from "@/lib/api";
-
 const STATUS_CONFIG: Record<
   string,
   { label: string; bg: string; text: string; border: string }
