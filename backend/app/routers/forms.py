@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.db.session import get_db
 from app.core.deps import get_current_admin
@@ -65,7 +66,9 @@ async def get_public_form(
     db: AsyncSession = Depends(get_db),
 ) -> Form:
     """Public endpoint to fetch form details by slug. Unauthenticated."""
-    result = await db.execute(select(Form).where(Form.slug == slug))
+    result = await db.execute(
+        select(Form).options(selectinload(Form.fields)).where(Form.slug == slug)
+    )
     form = result.scalar_one_or_none()
     if not form:
         raise HTTPException(
@@ -87,7 +90,9 @@ async def get_form(
     current_admin: User = Depends(get_current_admin),
 ) -> Form:
     """Fetch form details by ID, including its fields."""
-    result = await db.execute(select(Form).where(Form.id == id))
+    result = await db.execute(
+        select(Form).options(selectinload(Form.fields)).where(Form.id == id)
+    )
     form = result.scalar_one_or_none()
     if not form:
         raise HTTPException(
