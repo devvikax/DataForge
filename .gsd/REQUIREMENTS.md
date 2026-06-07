@@ -8,16 +8,16 @@
 
 | ID | Requirement | Source | Priority | Status |
 |----|-------------|--------|----------|--------|
-| REQ-01 | Admin can log in with username + password using JWT authentication | SPEC Goal: Auth | P0 | Pending |
-| REQ-02 | JWT tokens expire and admin is redirected to login on expiry | SPEC Goal: Auth | P0 | Pending |
-| REQ-03 | Admin can create a new form with a name, description, and settings | SPEC Goal 1 | P0 | Pending |
-| REQ-04 | Admin can add fields of types: text, textarea, number, email, phone, date, dropdown, radio, checkbox, file | SPEC Goal 1 | P0 | Pending |
-| REQ-05 | Every field supports: required/optional, placeholder, description, default value | SPEC Goal 1 | P0 | Pending |
-| REQ-06 | Admin can define conditional logic: show/hide fields based on other field values | SPEC Goal 1 | P1 | Pending |
-| REQ-07 | Admin can reorder fields via drag-and-drop in the form builder | SPEC Goal 1 | P1 | Pending |
-| REQ-08 | Admin can manually open or close a form at any time | SPEC Goal 1 | P0 | Pending |
-| REQ-09 | Admin can configure duplicate detection fields per form | SPEC Goal 5 | P0 | Pending |
-| REQ-10 | Admin can edit or delete a form (with confirmation) | SPEC Goal 1 | P1 | Pending |
+| REQ-01 | Admin can log in with username + password using JWT authentication | SPEC Goal: Auth | P0 | Completed (Phase 1) |
+| REQ-02 | JWT tokens expire and admin is redirected to login on expiry | SPEC Goal: Auth | P0 | Completed (Phase 1) |
+| REQ-03 | Admin can create a new form with a name, description, and settings | SPEC Goal 1 | P0 | Completed (Phase 2) |
+| REQ-04 | Admin can add fields of types: text, textarea, number, email, phone, date, dropdown, radio, checkbox, file | SPEC Goal 1 | P0 | Completed (Phase 2) |
+| REQ-05 | Every field supports: required/optional, placeholder, description, default value | SPEC Goal 1 | P0 | Completed (Phase 2) |
+| REQ-06 | Admin can define conditional logic: show/hide fields based on other field values | SPEC Goal 1 | P1 | Completed (Phase 2) |
+| REQ-07 | Admin can reorder fields via drag-and-drop in the form builder | SPEC Goal 1 | P1 | Completed (Phase 2) |
+| REQ-08 | Admin can manually open or close a form at any time | SPEC Goal 1 | P0 | Completed (Phase 2) |
+| REQ-09 | Admin can configure duplicate detection fields per form | SPEC Goal 5 | P0 | Completed (Phase 2) |
+| REQ-10 | Admin can edit or delete a form (with confirmation) | SPEC Goal 1 | P1 | Completed (Phase 2) |
 | REQ-11 | Public user can open a form via shareable public URL without authentication | SPEC Goal 2 | P0 | Pending |
 | REQ-12 | Public form displays a review screen before final submission | SPEC Goal 2 | P0 | Pending |
 | REQ-13 | Review screen requires confirmation checkbox before submit | SPEC Goal 2 | P0 | Pending |
@@ -43,21 +43,21 @@
 | REQ-33 | Analytics dashboard shows total submissions, daily count, approval rate | SPEC Goal 7 | P0 | Pending |
 | REQ-34 | Analytics shows response trends over time (line chart), category distributions (pie/bar) | SPEC Goal 7 | P1 | Pending |
 | REQ-35 | Field-level statistics are available for dropdown/radio/checkbox fields | SPEC Goal 7 | P1 | Pending |
-| REQ-36 | Full stack runs via `docker-compose up` on a local machine | SPEC Constraint | P0 | Pending |
+| REQ-36 | Full stack runs via `docker-compose up` on a local machine | SPEC Constraint | P0 | Completed (Phase 1) |
 
 ---
 
 ## Non-Functional Requirements
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| NFR-01 | Public form pages load in under 2 seconds on standard connection | P1 |
-| NFR-02 | Admin dashboard is fully responsive down to 768px viewport | P1 |
-| NFR-03 | All form inputs meet WCAG 2.1 AA accessibility standards | P1 |
-| NFR-04 | Admin JWT secret is stored in environment variable, never hardcoded | P0 |
-| NFR-05 | Database credentials are stored in environment variables | P0 |
-| NFR-06 | Cloudinary credentials are stored in environment variables | P0 |
-| NFR-07 | API follows RESTful conventions with consistent error response schema | P1 |
-| NFR-08 | All database operations use SQLAlchemy ORM (no raw SQL except analytics) | P1 |
-| NFR-09 | Alembic migrations track all schema changes | P0 |
-| NFR-10 | Backend includes input sanitization to prevent SQL injection and XSS | P0 |
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| NFR-01 | Public form pages load in under 2 seconds on standard connection | P1 | Pending |
+| NFR-02 | Admin dashboard is fully responsive down to 768px viewport | P1 | Completed (Phase 2) |
+| NFR-03 | All form inputs meet WCAG 2.1 AA accessibility standards | P1 | Pending |
+| NFR-04 | Admin JWT secret is stored in environment variable, never hardcoded | P0 | Completed (Phase 1) |
+| NFR-05 | Database credentials are stored in environment variables | P0 | Completed (Phase 1) |
+| NFR-06 | Cloudinary credentials are stored in environment variables | P0 | Pending |
+| NFR-07 | API follows RESTful conventions with consistent error response schema | P1 | Completed (Phase 2) |
+| NFR-08 | All database operations use SQLAlchemy ORM (no raw SQL except analytics) | P1 | Completed (Phase 2) |
+| NFR-09 | Alembic migrations track all schema changes | P0 | Completed (Phase 1) |
+| NFR-10 | Backend includes input sanitization to prevent SQL injection and XSS | P0 | Pending |
