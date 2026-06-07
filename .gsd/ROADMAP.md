@@ -1,7 +1,7 @@
 # ROADMAP.md — DataForge
 
 > **Project**: DataForge — Personal Form Creation & Data Collection Platform
-> **Current Phase**: Not Started
+> **Current Phase**: Phase 5 — Analytics, Export & Reporting
 > **Milestone**: v1.0 — Full Single-Admin Platform
 
 ---
@@ -71,7 +71,7 @@
 ---
 
 ### Phase 3: Public Submission Workflow & File Uploads
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build the complete public-facing form experience — rendering, conditional logic evaluation, review screen, duplicate detection, Cloudinary file uploads, and Submission ID generation.
 
 **Deliverables**:
@@ -94,7 +94,7 @@
 ---
 
 ### Phase 4: Admin Submissions Management & Edit Requests
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build the Excel-style submissions table for the admin, full status management, and the complete edit request workflow (submit request → admin review → approve/reject → secure edit link).
 
 **Deliverables**:

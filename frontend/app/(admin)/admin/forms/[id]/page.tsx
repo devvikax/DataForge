@@ -147,6 +147,14 @@ export default function AdminFormBuilderPage() {
             </Button>
             <Button
               variant="outline"
+              onClick={() => router.push(`/admin/forms/${id}/submissions`)}
+              className="neo-btn bg-surface hover:bg-neutral-100 font-bold text-sm h-10 px-4"
+              disabled={isSaving}
+            >
+              📥 Submissions
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setIsPreviewOpen(true)}
               className="neo-btn bg-accent-2 text-white hover:bg-blue-700 font-bold text-sm h-10 px-4"
               disabled={isSaving}

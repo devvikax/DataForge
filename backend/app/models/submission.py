@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, ForeignKey, Text, Enum as SAEnum
+from sqlalchemy import String, DateTime, ForeignKey, Text, Enum as SAEnum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -25,12 +25,17 @@ class Submission(Base):
     )
 
     # Human-readable ID: DF-2026-000001
-    submission_id: Mapped[str] = mapped_column(String(30), unique=True, nullable=False, index=True)
+    submission_id: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
 
     status: Mapped[SubmissionStatus] = mapped_column(
         SAEnum(SubmissionStatus), default=SubmissionStatus.PENDING, nullable=False, index=True
     )
     admin_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("form_id", "submission_id", name="uq_submissions_form_submission"),
+    )
+
 
     # Submitter metadata
     submitter_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)

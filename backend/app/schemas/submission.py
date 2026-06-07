@@ -32,3 +32,63 @@ class SubmissionResponse(BaseModel):
     submitted_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class SubmissionValueRead(BaseModel):
+    id: uuid.UUID
+    field_id: uuid.UUID
+    value_text: Optional[str] = None
+    value_json: Optional[Union[List[str], Dict[str, Any], None]] = None
+
+    model_config = {"from_attributes": True}
+
+
+class FileUploadRead(BaseModel):
+    id: uuid.UUID
+    field_id: uuid.UUID
+    cloudinary_url: str
+    cloudinary_secure_url: str
+    original_filename: str
+    file_type: str
+    file_size_bytes: int
+    uploaded_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SubmissionDetailResponse(BaseModel):
+    id: uuid.UUID
+    form_id: uuid.UUID
+    submission_id: str
+    status: str
+    admin_notes: Optional[str] = None
+    submitter_ip: Optional[str] = None
+    submitted_at: datetime
+    updated_at: datetime
+    values: List[SubmissionValueRead]
+    file_uploads: List[FileUploadRead]
+
+    model_config = {"from_attributes": True}
+
+
+class PaginatedSubmissionsResponse(BaseModel):
+    submissions: List[SubmissionDetailResponse]
+    total_count: int
+    page: int
+    limit: int
+    total_pages: int
+
+
+class SubmissionStatusUpdate(BaseModel):
+    status: str
+    admin_notes: Optional[str] = None
+
+
+class BulkStatusUpdate(BaseModel):
+    submission_ids: List[uuid.UUID]
+    status: str
+
+
+class BulkArchiveRequest(BaseModel):
+    submission_ids: List[uuid.UUID]
+
