@@ -42,3 +42,20 @@ class FormDetailRead(FormRead):
 
 class FieldReorderRequest(BaseModel):
     field_ids: List[uuid.UUID]
+
+
+class DailyCount(BaseModel):
+    date: str
+    count: int
+
+
+class FormAnalyticsResponse(BaseModel):
+    total_submissions: int
+    today_submissions: int
+    approval_rate: float
+    pending_count: int
+    status_counts: dict
+    daily_counts: List[DailyCount]
+    field_stats: dict
+    computed_at: datetime
+

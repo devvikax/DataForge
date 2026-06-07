@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AdminTopbar } from "@/components/admin/topbar";
 import { FormSettingsModal } from "@/components/admin/form-settings-modal";
@@ -13,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 export default function AdminFormsPage() {
   const { token } = useAuth();
+  const router = useRouter();
   const [forms, setForms] = useState<FormRead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -201,6 +203,28 @@ export default function AdminFormsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="rounded-none neo-border bg-background">
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/admin/forms/${form.id}/submissions`)}
+                              className="font-semibold text-sm cursor-pointer"
+                              id={`submissions-btn-${form.slug}`}
+                            >
+                              📥 Submissions
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/admin/analytics/${form.id}`)}
+                              className="font-semibold text-sm cursor-pointer"
+                              id={`analytics-btn-${form.slug}`}
+                            >
+                              📊 Analytics
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/admin/forms/${form.id}/reports`)}
+                              className="font-semibold text-sm cursor-pointer"
+                              id={`reports-btn-${form.slug}`}
+                            >
+                              📋 Reports & Printing
+                            </DropdownMenuItem>
+                            <hr className="border-border my-1" />
                             <DropdownMenuItem
                               onClick={() => openEditModal(form)}
                               className="font-semibold text-sm cursor-pointer"

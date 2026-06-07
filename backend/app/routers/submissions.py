@@ -166,6 +166,14 @@ async def create_submission(
 
         await db.commit()
         await db.refresh(submission)
+
+        try:
+            from app.services.analytics import update_analytics_cache
+            await update_analytics_cache(form_id, db)
+            await db.commit()
+        except Exception as ae:
+            logger.error(f"Failed to update analytics cache on submission: {str(ae)}")
+
         logger.info(f"Submission {submission_id} created successfully.")
         return submission
 
@@ -287,6 +295,14 @@ async def update_submission_status(
 
     await db.commit()
     await db.refresh(submission)
+
+    try:
+        from app.services.analytics import update_analytics_cache
+        await update_analytics_cache(submission.form_id, db)
+        await db.commit()
+    except Exception as ae:
+        logger.error(f"Failed to update analytics cache on status update: {str(ae)}")
+
     return submission
 
 
@@ -308,6 +324,17 @@ async def bulk_update_submission_status(
         sub.updated_at = now
 
     await db.commit()
+
+    if submissions:
+        form_ids = {sub.form_id for sub in submissions}
+        from app.services.analytics import update_analytics_cache
+        for f_id in form_ids:
+            try:
+                await update_analytics_cache(f_id, db)
+            except Exception as ae:
+                logger.error(f"Failed to update analytics cache on bulk status: {str(ae)}")
+        await db.commit()
+
     return {"updated_count": len(submissions)}
 
 
@@ -329,6 +356,17 @@ async def bulk_archive_submissions(
         sub.updated_at = now
 
     await db.commit()
+
+    if submissions:
+        form_ids = {sub.form_id for sub in submissions}
+        from app.services.analytics import update_analytics_cache
+        for f_id in form_ids:
+            try:
+                await update_analytics_cache(f_id, db)
+            except Exception as ae:
+                logger.error(f"Failed to update analytics cache on bulk archive: {str(ae)}")
+        await db.commit()
+
     return {"archived_count": len(submissions)}
 
 
@@ -661,6 +699,14 @@ async def apply_submission_edit_by_token(
         req.token_used = True
 
         await db.commit()
+
+        try:
+            from app.services.analytics import update_analytics_cache
+            await update_analytics_cache(submission.form_id, db)
+            await db.commit()
+        except Exception as ae:
+            logger.error(f"Failed to update analytics cache on edit-by-token: {str(ae)}")
+
         return {"message": "Submission updated successfully."}
 
     except Exception as e:

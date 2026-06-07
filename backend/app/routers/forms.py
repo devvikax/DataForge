@@ -1,23 +1,34 @@
 import uuid
-from typing import List
+import csv
+import io
+from datetime import datetime, timezone
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 from app.db.session import get_db
 from app.core.deps import get_current_admin
 from app.models.form import Form
 from app.models.form_field import FormField, FieldType
 from app.models.user import User
+from app.models.submission import Submission, SubmissionStatus
+from app.models.analytics_cache import AnalyticsCache
 from app.schemas.form import (
     FormCreate,
     FormUpdate,
     FormRead,
     FormDetailRead,
-    FieldReorderRequest
+    FieldReorderRequest,
+    FormAnalyticsResponse
 )
 from app.schemas.form_field import FormFieldUpdate, FormFieldRead
+from app.services.analytics import update_analytics_cache
 
 router = APIRouter()
 
@@ -255,3 +266,214 @@ async def reorder_form_fields(
             fields[field_id].order = idx
 
     await db.commit()
+
+
+async def fetch_submissions_for_export(form_id: uuid.UUID, db: AsyncSession):
+    # Fetch form fields sorted by order
+    fields_result = await db.execute(
+        select(FormField).where(FormField.form_id == form_id).order_by(FormField.order)
+    )
+    fields = fields_result.scalars().all()
+
+    # Fetch submissions
+    submissions_result = await db.execute(
+        select(Submission)
+        .options(
+            selectinload(Submission.values),
+            selectinload(Submission.file_uploads)
+        )
+        .where(Submission.form_id == form_id)
+        .order_by(Submission.submitted_at.desc())
+    )
+    submissions = submissions_result.scalars().all()
+    return fields, submissions
+
+
+@router.get("/{id}/analytics", response_model=FormAnalyticsResponse)
+async def get_form_analytics(
+    id: uuid.UUID,
+    force_refresh: bool = False,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    """Retrieve form submissions analytics. Uses pre-computed cache by default."""
+    form_result = await db.execute(select(Form).where(Form.id == id))
+    form = form_result.scalar_one_or_none()
+    if not form:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Form not found.",
+        )
+
+    cache_res = await db.execute(
+        select(AnalyticsCache).where(AnalyticsCache.form_id == id)
+    )
+    cache = cache_res.scalar_one_or_none()
+
+    if not cache or force_refresh:
+        cache = await update_analytics_cache(id, db)
+        await db.commit()
+
+    today_str = datetime.now(timezone.utc).date().isoformat()
+    today_submissions = 0
+    for day in cache.daily_counts:
+        if day.get("date") == today_str:
+            today_submissions = day.get("count", 0)
+            break
+
+    pending_count = cache.status_counts.get(SubmissionStatus.PENDING.value, 0)
+    
+    approved_val = cache.status_counts.get(SubmissionStatus.APPROVED.value, 0)
+    completed_val = cache.status_counts.get(SubmissionStatus.COMPLETED.value, 0)
+    approved_count = approved_val + completed_val
+    
+    approval_rate = (approved_count / cache.total_submissions * 100) if cache.total_submissions > 0 else 0.0
+
+    return FormAnalyticsResponse(
+        total_submissions=cache.total_submissions,
+        today_submissions=today_submissions,
+        approval_rate=round(approval_rate, 1),
+        pending_count=pending_count,
+        status_counts=cache.status_counts,
+        daily_counts=cache.daily_counts,
+        field_stats=cache.field_stats,
+        computed_at=cache.computed_at
+    )
+
+
+@router.get("/{id}/export/csv")
+async def export_submissions_csv(
+    id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    """Export all submissions for a form in CSV format."""
+    form_res = await db.execute(select(Form).where(Form.id == id))
+    form = form_res.scalar_one_or_none()
+    if not form:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Form not found.",
+        )
+
+    fields, submissions = await fetch_submissions_for_export(id, db)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    header = ["Submission ID", "Status", "Submitted At"]
+    for field in fields:
+        header.append(field.label)
+    writer.writerow(header)
+
+    for sub in submissions:
+        row = [
+            sub.submission_id,
+            sub.status.value,
+            sub.submitted_at.strftime("%Y-%m-%d %H:%M:%S")
+        ]
+        for field in fields:
+            if field.field_type == FieldType.FILE:
+                files = [f for f in sub.file_uploads if f.field_id == field.id]
+                row.append(", ".join(f.cloudinary_secure_url for f in files))
+            else:
+                sub_val = next((v for v in sub.values if v.field_id == field.id), None)
+                if sub_val:
+                    if sub_val.value_json is not None:
+                        if isinstance(sub_val.value_json, list):
+                            row.append(", ".join(str(x) for x in sub_val.value_json))
+                        else:
+                            row.append(str(sub_val.value_json))
+                    elif sub_val.value_text is not None:
+                        row.append(sub_val.value_text)
+                    else:
+                        row.append("")
+                else:
+                    row.append("")
+        writer.writerow(row)
+
+    output.seek(0)
+    filename = f"export_{form.slug}_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+    return StreamingResponse(
+        io.StringIO(output.getvalue()),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/{id}/export/xlsx")
+async def export_submissions_xlsx(
+    id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    """Export all submissions for a form in Excel (XLSX) format."""
+    form_res = await db.execute(select(Form).where(Form.id == id))
+    form = form_res.scalar_one_or_none()
+    if not form:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Form not found.",
+        )
+
+    fields, submissions = await fetch_submissions_for_export(id, db)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Submissions"
+
+    header = ["Submission ID", "Status", "Submitted At"]
+    for field in fields:
+        header.append(field.label)
+    ws.append(header)
+
+    for col_idx in range(1, len(header) + 1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.font = Font(bold=True)
+
+    for sub in submissions:
+        row = [
+            sub.submission_id,
+            sub.status.value,
+            sub.submitted_at.strftime("%Y-%m-%d %H:%M:%S")
+        ]
+        for field in fields:
+            if field.field_type == FieldType.FILE:
+                files = [f for f in sub.file_uploads if f.field_id == field.id]
+                row.append(", ".join(f.cloudinary_secure_url for f in files))
+            else:
+                sub_val = next((v for v in sub.values if v.field_id == field.id), None)
+                if sub_val:
+                    if sub_val.value_json is not None:
+                        if isinstance(sub_val.value_json, list):
+                            row.append(", ".join(str(x) for x in sub_val.value_json))
+                        else:
+                            row.append(str(sub_val.value_json))
+                    elif sub_val.value_text is not None:
+                        row.append(sub_val.value_text)
+                    else:
+                        row.append("")
+                else:
+                    row.append("")
+        ws.append(row)
+
+    for col in ws.columns:
+        max_len = 0
+        for cell in col:
+            val_str = str(cell.value or "")
+            if len(val_str) > max_len:
+                max_len = len(val_str)
+        col_letter = get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 10)
+
+    out = io.BytesIO()
+    wb.save(out)
+    out.seek(0)
+
+    filename = f"export_{form.slug}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+    return Response(
+        content=out.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+

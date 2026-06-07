@@ -48,6 +48,38 @@ export default function SubmissionsPage() {
   // Detail drawer
   const [activeSubmission, setActiveSubmission] = useState<SubmissionRead | null>(null);
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (format: "csv" | "xlsx") => {
+    if (!token || !form) return;
+    setIsExporting(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const response = await fetch(`${apiBase}/api/forms/${formId}/export/${format}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Export failed with HTTP ${response.status}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `export_${form.slug}_submissions.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Exported submissions to ${format.toUpperCase()} successfully.`);
+    } catch (err: any) {
+      toast.error(err.message || `Failed to export to ${format.toUpperCase()}.`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Debounce search
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -194,6 +226,31 @@ export default function SubmissionsPage() {
                 ← Form Builder
               </Button>
             </Link>
+            <Link href={`/admin/forms/${formId}/reports`}>
+              <Button
+                id="submissions-reports-btn"
+                variant="outline"
+                className="neo-btn bg-surface hover:bg-neutral-100 font-bold text-sm h-10 px-4"
+              >
+                📋 Reports
+              </Button>
+            </Link>
+            <Button
+              id="export-csv-btn"
+              onClick={() => handleExport("csv")}
+              disabled={isExporting}
+              className="neo-btn bg-accent-2 text-white hover:bg-blue-700 font-bold text-sm h-10 px-4"
+            >
+              📥 Export CSV
+            </Button>
+            <Button
+              id="export-xlsx-btn"
+              onClick={() => handleExport("xlsx")}
+              disabled={isExporting}
+              className="neo-btn bg-accent text-foreground hover:bg-accent-hover font-bold text-sm h-10 px-4"
+            >
+              📥 Export XLSX
+            </Button>
           </div>
         }
       />

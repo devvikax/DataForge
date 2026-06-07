@@ -150,6 +150,29 @@ export interface EditRequestFormDetail {
   file_uploads: FileUploadRead[];
 }
 
+export interface DailyCount {
+  date: string;
+  count: number;
+}
+
+export interface FormAnalytics {
+  total_submissions: number;
+  today_submissions: number;
+  approval_rate: number;
+  pending_count: number;
+  status_counts: Record<string, number>;
+  daily_counts: DailyCount[];
+  field_stats: Record<
+    string,
+    {
+      response_rate: number;
+      unique_count: number;
+      value_distribution?: Record<string, number>;
+    }
+  >;
+  computed_at: string;
+}
+
 // ── API client ───────────────────────────────────────────────────────────────
 
 export const api = {
@@ -320,4 +343,14 @@ export const api = {
       method: "PATCH",
       body: payload,
     }),
+
+  // ── Phase 5: Analytics ─────────────────────────────────────────────────────
+
+  getFormAnalytics: (formId: string, token: string, forceRefresh?: boolean) => {
+    const qs = forceRefresh ? "?force_refresh=true" : "";
+    return request<FormAnalytics>(`/api/forms/${formId}/analytics${qs}`, {
+      method: "GET",
+      token,
+    });
+  },
 };
