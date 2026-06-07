@@ -8,8 +8,8 @@
 
 ## Active Context
 
-- **What we're doing**: Project initialized. Ready to begin Phase 1.
-- **Immediate next step**: Run `/plan 1` to break Phase 1 into executable tasks.
+- **What we're doing**: Phase 1 planned. Ready for execution.
+- **Immediate next step**: Run `/execute 1` to start building (begin with Wave 1: Plans 1.1 + 1.2 in parallel, then 1.3, then 1.4, then 1.5 + 1.6).
 - **Blockers**: None
 
 ---
