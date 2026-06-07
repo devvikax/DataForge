@@ -191,7 +191,7 @@ export default function AdminFormsPage() {
                         </Button>
 
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger>
                             <Button
                               variant="outline"
                               className="neo-btn bg-surface hover:bg-neutral-100 h-9 px-3 text-xs"
