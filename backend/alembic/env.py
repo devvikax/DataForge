@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Override sqlalchemy.url from environment (use sync driver for Alembic)
-_sync_url = settings.DATABASE_URL.replace("+asyncpg", "+psycopg2")
+_sync_url = settings.DATABASE_URL.replace("+asyncpg", "+psycopg2").replace("+aiosqlite", "")
 config.set_main_option("sqlalchemy.url", _sync_url)
 
 
@@ -52,7 +52,7 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     """Run migrations using async engine, falling back to sync connection for Alembic."""
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = _sync_url
+    configuration["sqlalchemy.url"] = settings.DATABASE_URL
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",
