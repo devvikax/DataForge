@@ -5,35 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { AdminTopbar } from "@/components/admin/topbar";
 import { FieldPalette } from "@/components/admin/builder/field-palette";
 import { BuilderCanvas } from "@/components/admin/builder/builder-canvas";
+import { PropertyPanel } from "@/components/admin/builder/property-panel";
+import { FormPreview } from "@/components/admin/builder/form-preview";
 import { useAuth } from "@/contexts/auth-context";
 import { api, FormDetailRead, FormFieldRead } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { NeoCard } from "@/components/ui/neo-card";
-
-// Simple Property Panel placeholder for Plan 2.3
-function PropertyPanelPlaceholder({ selectedField }: { selectedField: FormFieldRead | null }) {
-  return (
-    <div className="neo-card p-4 h-fit sticky top-6">
-      <h3 className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">Field Properties</h3>
-      {selectedField ? (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="neo-pill bg-muted text-muted-foreground text-[10px] py-0.5 px-2 font-mono">
-              {selectedField.field_type.toUpperCase()}
-            </span>
-          </div>
-          <p className="text-sm font-bold">Label: {selectedField.label || "Untitled Field"}</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Detailed configurations (labels, placeholders, options, logic) will be fully implementable in Plan 2.4.
-          </p>
-        </div>
-      ) : (
-        <p className="text-sm text-muted-foreground">Select a field on the canvas to configure properties.</p>
-      )}
-    </div>
-  );
-}
 
 export default function AdminFormBuilderPage() {
   const params = useParams();
@@ -46,6 +24,7 @@ export default function AdminFormBuilderPage() {
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     const loadForm = async () => {
@@ -101,15 +80,39 @@ export default function AdminFormBuilderPage() {
     toast.success("Field deleted from canvas.");
   };
 
+  const handleUpdateField = (updatedField: FormFieldRead) => {
+    setFields(fields.map((f) => (f.id === updatedField.id ? updatedField : f)));
+  };
+
+  const handleUpdateForm = (updatedForm: FormDetailRead) => {
+    setForm(updatedForm);
+  };
+
   const handleSaveForm = async () => {
-    if (!token || !id) return;
+    if (!token || !id || !form) return;
     setIsSaving(true);
     try {
-      const savedFields = await api.saveFields(id, fields, token);
+      const [savedFields, savedForm] = await Promise.all([
+        api.saveFields(id, fields, token),
+        api.updateForm(
+          id,
+          {
+            name: form.name,
+            description: form.description,
+            unique_field_ids: form.unique_field_ids,
+          },
+          token
+        ),
+      ]);
       setFields(savedFields);
-      toast.success("Form fields saved successfully.");
+      setForm({
+        ...form,
+        ...savedForm,
+        fields: savedFields,
+      });
+      toast.success("Form saved successfully.");
     } catch (err: any) {
-      toast.error(err.message || "Failed to save form fields.");
+      toast.error(err.message || "Failed to save form.");
     } finally {
       setIsSaving(false);
     }
@@ -141,6 +144,14 @@ export default function AdminFormBuilderPage() {
               disabled={isSaving}
             >
               Back to List
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsPreviewOpen(true)}
+              className="neo-btn bg-accent-2 text-white hover:bg-blue-700 font-bold text-sm h-10 px-4"
+              disabled={isSaving}
+            >
+              Preview Form
             </Button>
             <Button
               onClick={handleSaveForm}
@@ -178,10 +189,23 @@ export default function AdminFormBuilderPage() {
 
           {/* Right: Properties */}
           <div className="col-span-12 md:col-span-3">
-            <PropertyPanelPlaceholder selectedField={selectedField} />
+            <PropertyPanel
+              selectedField={selectedField}
+              allFields={fields}
+              onUpdateField={handleUpdateField}
+              form={form!}
+              onUpdateForm={handleUpdateForm}
+            />
           </div>
         </div>
       </main>
+
+      <FormPreview
+        isOpen={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        form={form!}
+        fields={fields}
+      />
     </div>
   );
 }
