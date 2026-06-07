@@ -1,0 +1,2 @@
+-- Placeholder: schema is managed by Alembic migrations
+-- This file exists to satisfy Docker's initdb directory mounting
