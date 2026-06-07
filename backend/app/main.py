@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import health, auth, forms, uploads
+from app.routers import health, auth, forms, uploads, submissions
 
 
 @asynccontextmanager
@@ -39,3 +39,4 @@ app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(forms.router, prefix="/api/forms", tags=["forms"])
 app.include_router(uploads.router, prefix="/api/uploads", tags=["uploads"])
+app.include_router(submissions.router, prefix="/api/submissions", tags=["submissions"])
