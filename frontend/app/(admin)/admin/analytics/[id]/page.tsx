@@ -85,7 +85,7 @@ export default function FormAnalyticsPage() {
         title={`${form.name} — Analytics`}
         subtitle={`Compiled statistics for slug: /f/${form.slug}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 lg:gap-2 justify-end">
             <Link href="/admin/analytics">
               <Button
                 variant="outline"
@@ -110,7 +110,7 @@ export default function FormAnalyticsPage() {
       <main className="flex-1 p-6 space-y-6 overflow-y-auto">
         {/* KPI Cards */}
         <div className="grid grid-cols-12 gap-6">
-          <NeoCard className="col-span-12 sm:col-span-6 lg:col-span-3 p-5 bg-surface shadow-[4px_4px_0px_#000000]">
+          <NeoCard className="col-span-12 sm:col-span-6 p-5 bg-surface shadow-[4px_4px_0px_#000000]">
             <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               Total Submissions
             </p>
@@ -119,7 +119,7 @@ export default function FormAnalyticsPage() {
             </p>
           </NeoCard>
 
-          <NeoCard className="col-span-12 sm:col-span-6 lg:col-span-3 p-5 bg-surface shadow-[4px_4px_0px_#000000]">
+          <NeoCard className="col-span-12 sm:col-span-6 p-5 bg-surface shadow-[4px_4px_0px_#000000]">
             <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               Submissions Today
             </p>
@@ -127,30 +127,11 @@ export default function FormAnalyticsPage() {
               {analytics.today_submissions}
             </p>
           </NeoCard>
-
-          <NeoCard className="col-span-12 sm:col-span-6 lg:col-span-3 p-5 bg-surface shadow-[4px_4px_0px_#000000]">
-            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              Approval Rate
-            </p>
-            <p className="text-3xl font-black mt-2 font-mono" id="kpi-approval-rate">
-              {analytics.approval_rate}%
-            </p>
-          </NeoCard>
-
-          <NeoCard className="col-span-12 sm:col-span-6 lg:col-span-3 p-5 bg-surface shadow-[4px_4px_0px_#000000]">
-            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              Pending Submissions
-            </p>
-            <p className="text-3xl font-black mt-2 font-mono" id="kpi-pending-submissions">
-              {analytics.pending_count}
-            </p>
-          </NeoCard>
         </div>
 
         {/* Charts Component */}
         <AnalyticsCharts
           dailyCounts={analytics.daily_counts}
-          statusCounts={analytics.status_counts}
         />
 
         {/* Choice Distributions */}
@@ -226,7 +207,7 @@ export default function FormAnalyticsPage() {
             <h3 className="text-xl font-black tracking-tight mb-4 font-mono">
               📝 Other Fields Response Rates
             </h3>
-            <div className="neo-card p-0 overflow-hidden shadow-[4px_4px_0px_#000000]">
+            <div className="neo-card p-0 overflow-x-auto shadow-[4px_4px_0px_#000000]">
               <table className="w-full text-left border-collapse" id="field-stats-table">
                 <thead>
                   <tr className="border-b-2 border-border bg-muted/50 font-mono text-xs uppercase tracking-wider">

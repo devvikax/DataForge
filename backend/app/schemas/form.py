@@ -52,9 +52,6 @@ class DailyCount(BaseModel):
 class FormAnalyticsResponse(BaseModel):
     total_submissions: int
     today_submissions: int
-    approval_rate: float
-    pending_count: int
-    status_counts: dict
     daily_counts: List[DailyCount]
     field_stats: dict
     computed_at: datetime
@@ -63,7 +60,5 @@ class FormAnalyticsResponse(BaseModel):
 class AdminStatsResponse(BaseModel):
     total_forms: int
     total_submissions: int
-    pending_submissions: int
-    edit_requests: int
 
 

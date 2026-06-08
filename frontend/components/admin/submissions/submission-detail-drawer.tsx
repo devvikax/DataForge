@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { SubmissionRead, FormFieldRead, FileUploadRead, api } from "@/lib/api";
-import { StatusBadge, ALL_STATUSES } from "./status-badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth-context";
@@ -11,49 +10,14 @@ interface SubmissionDetailDrawerProps {
   submission: SubmissionRead | null;
   fields: FormFieldRead[];
   onClose: () => void;
-  onUpdated: (updated: SubmissionRead) => void;
 }
 
 export function SubmissionDetailDrawer({
   submission,
   fields,
   onClose,
-  onUpdated,
 }: SubmissionDetailDrawerProps) {
-  const { token } = useAuth();
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [adminNotes, setAdminNotes] = useState<string>("");
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Reset local state whenever the active submission changes
-  useEffect(() => {
-    if (submission) {
-      setSelectedStatus(submission.status);
-      setAdminNotes(submission.admin_notes ?? "");
-    }
-  }, [submission?.id]);
-
   if (!submission) return null;
-
-
-  const handleSaveStatus = async () => {
-    if (!token) return;
-    setIsSaving(true);
-    try {
-      const updated = await api.updateSubmissionStatus(
-        submission.id,
-        selectedStatus,
-        adminNotes.trim() || null,
-        token
-      );
-      onUpdated(updated);
-      toast.success("Submission status updated.");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update status.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const getFieldLabel = (fieldId: string) => {
     return fields.find((f) => f.id === fieldId)?.label ?? fieldId;
@@ -119,47 +83,7 @@ export function SubmissionDetailDrawer({
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
-          {/* Status management */}
-          <div className="neo-card p-4 space-y-3">
-            <h3 className="font-bold text-sm uppercase tracking-wider">
-              Status Management
-            </h3>
-            <div className="flex items-center gap-3">
-              <select
-                id="drawer-status-select"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="neo-input h-9 px-2 text-sm bg-surface flex-1"
-              >
-                {ALL_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <StatusBadge status={selectedStatus} />
-            </div>
-            <div>
-              <label className="block font-semibold text-xs text-muted-foreground mb-1 uppercase tracking-wider">
-                Admin Notes (optional)
-              </label>
-              <textarea
-                id="drawer-admin-notes"
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add internal notes about this submission..."
-                className="neo-input w-full p-2.5 text-sm min-h-[80px] border-2 bg-surface resize-y"
-              />
-            </div>
-            <Button
-              id="drawer-save-status-btn"
-              onClick={handleSaveStatus}
-              disabled={isSaving}
-              className="neo-btn bg-accent text-foreground hover:bg-accent-hover font-bold text-sm h-9 px-4 w-full"
-            >
-              {isSaving ? "Saving..." : "Save Status"}
-            </Button>
-          </div>
+
 
           {/* Field values */}
           <div className="space-y-3">

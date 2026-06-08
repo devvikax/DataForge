@@ -534,6 +534,7 @@ export default function PublicFormPage() {
                 </span>
                 <Button
                   onClick={handleCopyId}
+                  variant="outline"
                   className="neo-btn bg-surface hover:bg-neutral-100 text-xs h-8 px-4"
                 >
                   Copy ID
@@ -541,7 +542,7 @@ export default function PublicFormPage() {
               </div>
 
               <p className="text-xs text-muted-foreground max-w-xs mx-auto mt-4">
-                Please copy and save this ID. You will need it to request edits or refer to your submission in the future.
+                Please copy and save this ID. You can use it to refer to your submission in the future.
               </p>
             </div>
           </div>

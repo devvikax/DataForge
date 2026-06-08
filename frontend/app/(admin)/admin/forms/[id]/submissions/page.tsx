@@ -13,7 +13,6 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { AdminTopbar } from "@/components/admin/topbar";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, ALL_STATUSES } from "@/components/admin/submissions/status-badge";
 import { SubmissionDetailDrawer } from "@/components/admin/submissions/submission-detail-drawer";
 import { toast } from "sonner";
 
@@ -37,13 +36,11 @@ export default function SubmissionsPage() {
   const [limit, setLimit] = useState(50);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
   const [sortBy, setSortBy] = useState("submitted_at");
   const [sortOrder, setSortOrder] = useState("desc");
 
   // Selection & bulk
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState("Verified");
 
   // Detail drawer
   const [activeSubmission, setActiveSubmission] = useState<SubmissionRead | null>(null);
@@ -114,7 +111,7 @@ export default function SubmissionsPage() {
     try {
       const data = await api.getSubmissions(
         formId,
-        { page, limit, sort_by: sortBy, sort_order: sortOrder, search: search || undefined, status_filter: statusFilter || undefined },
+        { page, limit, sort_by: sortBy, sort_order: sortOrder, search: search || undefined },
         token
       );
       setSubmissions(data.submissions);
@@ -126,7 +123,7 @@ export default function SubmissionsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, formId, page, limit, sortBy, sortOrder, search, statusFilter]);
+  }, [token, formId, page, limit, sortBy, sortOrder, search]);
 
   useEffect(() => {
     loadSubmissions();
@@ -167,16 +164,6 @@ export default function SubmissionsPage() {
   };
 
   // Bulk actions
-  const handleBulkStatus = async () => {
-    if (!token || selectedIds.size === 0) return;
-    try {
-      await api.bulkUpdateStatus(Array.from(selectedIds), bulkStatus, token);
-      toast.success(`Updated ${selectedIds.size} submission(s) to ${bulkStatus}.`);
-      loadSubmissions();
-    } catch (err: any) {
-      toast.error(err.message || "Bulk update failed.");
-    }
-  };
 
   const handleBulkArchive = async () => {
     if (!token || selectedIds.size === 0) return;
@@ -201,13 +188,7 @@ export default function SubmissionsPage() {
     return val.value_text ?? "—";
   };
 
-  // Drawer update handler
-  const handleDrawerUpdated = (updated: SubmissionRead) => {
-    setSubmissions((prev) =>
-      prev.map((s) => (s.id === updated.id ? updated : s))
-    );
-    setActiveSubmission(updated);
-  };
+
 
   const offset = (page - 1) * limit;
 
@@ -217,7 +198,7 @@ export default function SubmissionsPage() {
         title={form ? `${form.name} — Submissions` : "Submissions"}
         subtitle={`${totalCount} total submission${totalCount !== 1 ? "s" : ""}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 lg:gap-2 justify-end">
             <Link href={`/admin/forms/${formId}`}>
               <Button
                 variant="outline"
@@ -267,17 +248,6 @@ export default function SubmissionsPage() {
             className="neo-input h-9 px-3 text-sm bg-surface w-64"
           />
           <select
-            id="submissions-status-filter"
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="neo-input h-9 px-2 text-sm bg-surface"
-          >
-            <option value="">All Statuses</option>
-            {ALL_STATUSES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <select
             id="submissions-limit"
             value={limit}
             onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
@@ -287,13 +257,12 @@ export default function SubmissionsPage() {
               <option key={n} value={n}>{n} per page</option>
             ))}
           </select>
-          {(search || statusFilter) && (
+          {search && (
             <Button
               variant="outline"
               onClick={() => {
                 setSearch("");
                 setSearchInput("");
-                setStatusFilter("");
                 setPage(1);
               }}
               className="neo-btn bg-surface hover:bg-destructive/10 text-sm h-9 px-3 text-destructive border-destructive"
@@ -319,7 +288,7 @@ export default function SubmissionsPage() {
               <span className="text-5xl" role="img" aria-label="Empty inbox">📥</span>
               <h3 className="font-bold text-xl mt-4">No Submissions Yet</h3>
               <p className="text-muted-foreground text-sm mt-1">
-                {search || statusFilter
+                {search
                   ? "No submissions match your filters."
                   : "Share the public form link to start collecting responses."}
               </p>
@@ -346,12 +315,7 @@ export default function SubmissionsPage() {
                   >
                     Submission ID <SortIndicator column="submission_id" />
                   </th>
-                  <th
-                    className="p-3 font-bold cursor-pointer hover:bg-muted/30"
-                    onClick={() => handleSort("status")}
-                  >
-                    Status <SortIndicator column="status" />
-                  </th>
+
                   <th
                     className="p-3 font-bold cursor-pointer hover:bg-muted/30 whitespace-nowrap"
                     onClick={() => handleSort("submitted_at")}
@@ -405,9 +369,7 @@ export default function SubmissionsPage() {
                       <td className="p-3 font-mono font-bold text-xs whitespace-nowrap">
                         {sub.submission_id}
                       </td>
-                      <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                        <StatusBadge status={sub.status} />
-                      </td>
+
                       <td className="p-3 whitespace-nowrap text-xs text-muted-foreground">
                         {new Date(sub.submitted_at).toLocaleString(undefined, {
                           dateStyle: "medium",
@@ -474,25 +436,9 @@ export default function SubmissionsPage() {
             {selectedIds.size} selected
           </span>
           <div className="flex gap-2 items-center flex-1">
-            <select
-              id="bulk-status-select"
-              value={bulkStatus}
-              onChange={(e) => setBulkStatus(e.target.value)}
-              className="neo-input h-8 px-2 text-sm bg-white"
-            >
-              {ALL_STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-            <Button
-              id="bulk-update-status-btn"
-              onClick={handleBulkStatus}
-              className="neo-btn bg-foreground text-background hover:bg-foreground/80 h-8 px-3 text-xs font-bold"
-            >
-              Apply Status
-            </Button>
             <Button
               id="bulk-archive-btn"
+              variant="outline"
               onClick={handleBulkArchive}
               className="neo-btn bg-surface hover:bg-destructive/10 text-destructive border-destructive h-8 px-3 text-xs font-bold"
             >
@@ -514,7 +460,6 @@ export default function SubmissionsPage() {
         submission={activeSubmission}
         fields={fields}
         onClose={() => setActiveSubmission(null)}
-        onUpdated={handleDrawerUpdated}
       />
     </div>
   );

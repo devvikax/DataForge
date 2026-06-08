@@ -140,9 +140,9 @@ export default function AdminFormsPage() {
               <thead>
                 <tr className="border-b-2 border-border bg-muted/50 font-mono text-xs uppercase tracking-wider">
                   <th className="p-4 font-bold">Form Name</th>
-                  <th className="p-4 font-bold">Slug</th>
+                  <th className="p-4 font-bold hidden md:table-cell">Slug</th>
                   <th className="p-4 font-bold">Active Status</th>
-                  <th className="p-4 font-bold">Created At</th>
+                  <th className="p-4 font-bold hidden sm:table-cell">Created At</th>
                   <th className="p-4 font-bold text-right">Actions</th>
                 </tr>
               </thead>
@@ -160,8 +160,14 @@ export default function AdminFormsPage() {
                       {form.description && (
                         <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{form.description}</p>
                       )}
+                      <div className="text-[10px] text-muted-foreground mt-1 font-mono md:hidden space-y-0.5">
+                        <p>Slug: /f/{form.slug}</p>
+                        <p className="sm:hidden">
+                          Created: {new Date(form.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </td>
-                    <td className="p-4 font-mono text-sm">{form.slug}</td>
+                    <td className="p-4 font-mono text-sm hidden md:table-cell">{form.slug}</td>
                     <td className="p-4">
                       <button
                         onClick={() => toggleFormActive(form)}
@@ -175,7 +181,7 @@ export default function AdminFormsPage() {
                         {form.is_active ? "Active" : "Closed"}
                       </button>
                     </td>
-                    <td className="p-4 text-sm font-medium">
+                    <td className="p-4 text-sm font-medium hidden sm:table-cell">
                       {new Date(form.created_at).toLocaleDateString(undefined, {
                         year: "numeric",
                         month: "short",

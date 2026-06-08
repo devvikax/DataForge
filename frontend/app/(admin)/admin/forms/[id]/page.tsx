@@ -136,7 +136,7 @@ export default function AdminFormBuilderPage() {
         title={form?.name || "Form Builder"}
         subtitle={`Editing fields for slug: /f/${form?.slug}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 lg:gap-2 justify-end">
             <Button
               variant="outline"
               onClick={() => router.push("/admin/forms")}
@@ -172,18 +172,18 @@ export default function AdminFormBuilderPage() {
         }
       />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 lg:p-6">
         <div className="grid grid-cols-12 gap-6">
           {/* Left: Palette */}
-          <div className="col-span-12 md:col-span-3">
+          <div className="col-span-12 lg:col-span-3">
             <FieldPalette onAddField={handleAddField} />
           </div>
 
           {/* Center: Canvas */}
-          <div className="col-span-12 md:col-span-6 space-y-4">
-            <NeoCard className="p-4 bg-muted/15 font-mono text-xs text-muted-foreground flex justify-between items-center">
+          <div className="col-span-12 lg:col-span-6 space-y-4">
+            <NeoCard className="p-4 bg-muted/15 font-mono text-xs text-muted-foreground flex flex-wrap justify-between items-center gap-2">
               <span>Canvas List — Order changes are saved when clicking Save Form.</span>
-              <span className="font-bold">{fields.length} Fields</span>
+              <span className="font-bold shrink-0">{fields.length} Fields</span>
             </NeoCard>
 
             <BuilderCanvas
@@ -196,7 +196,7 @@ export default function AdminFormBuilderPage() {
           </div>
 
           {/* Right: Properties */}
-          <div className="col-span-12 md:col-span-3">
+          <div className="col-span-12 lg:col-span-3">
             <PropertyPanel
               selectedField={selectedField}
               allFields={fields}

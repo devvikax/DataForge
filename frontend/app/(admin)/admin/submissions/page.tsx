@@ -52,7 +52,7 @@ export default function AdminSubmissionsOverviewPage() {
             </Link>
           </div>
         ) : (
-          <div className="neo-card p-0 overflow-hidden">
+          <div className="neo-card p-0 overflow-x-auto">
             <table className="w-full text-left border-collapse" id="submissions-overview-table">
               <thead>
                 <tr className="border-b-2 border-border bg-muted/50 font-mono text-xs uppercase tracking-wider">

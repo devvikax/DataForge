@@ -29,6 +29,7 @@ export function FieldPalette({ onAddField }: FieldPaletteProps) {
             key={field.type}
             id={`add-field-btn-${field.type}`}
             onClick={() => onAddField(field.type)}
+            variant="outline"
             className="neo-btn bg-surface hover:bg-accent/20 flex flex-col items-center justify-center p-3 h-20 text-center gap-1.5"
           >
             <span className="text-xl" role="img" aria-hidden="true">{field.icon}</span>

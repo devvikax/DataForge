@@ -126,30 +126,6 @@ export interface PaginatedSubmissions {
   total_pages: number;
 }
 
-// ── Phase 4: Edit Request types ──────────────────────────────────────────────
-
-export interface EditRequestRead {
-  id: string;
-  submission_id: string;
-  reason: string;
-  status: string;
-  admin_note: string | null;
-  edit_token: string | null;
-  token_expires_at: string | null;
-  token_used: boolean;
-  created_at: string;
-  reviewed_at: string | null;
-  form_name: string | null;
-  human_submission_id: string | null;
-}
-
-export interface EditRequestFormDetail {
-  form: FormDetailRead;
-  submission_id: string;
-  values: SubmissionValueRead[];
-  file_uploads: FileUploadRead[];
-}
-
 export interface DailyCount {
   date: string;
   count: number;
@@ -158,9 +134,6 @@ export interface DailyCount {
 export interface FormAnalytics {
   total_submissions: number;
   today_submissions: number;
-  approval_rate: number;
-  pending_count: number;
-  status_counts: Record<string, number>;
   daily_counts: DailyCount[];
   field_stats: Record<
     string,
@@ -176,8 +149,6 @@ export interface FormAnalytics {
 export interface AdminStats {
   total_forms: number;
   total_submissions: number;
-  pending_submissions: number;
-  edit_requests: number;
 }
 
 // ── API client ───────────────────────────────────────────────────────────────
@@ -264,7 +235,6 @@ export const api = {
       sort_by?: string;
       sort_order?: string;
       search?: string;
-      status_filter?: string;
     },
     token: string
   ) => {
@@ -274,7 +244,6 @@ export const api = {
     if (params.sort_by) query.set("sort_by", params.sort_by);
     if (params.sort_order) query.set("sort_order", params.sort_order);
     if (params.search) query.set("search", params.search);
-    if (params.status_filter) query.set("status_filter", params.status_filter);
     const qs = query.toString();
     return request<PaginatedSubmissions>(
       `/api/submissions/form/${formId}${qs ? `?${qs}` : ""}`,
@@ -282,76 +251,11 @@ export const api = {
     );
   },
 
-  updateSubmissionStatus: (
-    id: string,
-    status: string,
-    admin_notes: string | null,
-    token: string
-  ) =>
-    request<SubmissionRead>(`/api/submissions/${id}/status`, {
-      method: "PATCH",
-      body: { status, admin_notes },
-      token,
-    }),
-
-  bulkUpdateStatus: (submission_ids: string[], status: string, token: string) =>
-    request<{ updated_count: number }>("/api/submissions/bulk-status", {
-      method: "POST",
-      body: { submission_ids, status },
-      token,
-    }),
-
   bulkArchive: (submission_ids: string[], token: string) =>
     request<{ archived_count: number }>("/api/submissions/bulk-archive", {
       method: "POST",
       body: { submission_ids },
       token,
-    }),
-
-  // ── Phase 4: Edit Requests — admin ─────────────────────────────────────────
-
-  getEditRequests: (status_filter: string | null, token: string) => {
-    const qs = status_filter ? `?status_filter=${status_filter}` : "";
-    return request<EditRequestRead[]>(`/api/submissions/edit-requests${qs}`, {
-      method: "GET",
-      token,
-    });
-  },
-
-  approveEditRequest: (id: string, admin_note: string | null, token: string) =>
-    request<EditRequestRead>(`/api/submissions/edit-requests/${id}/approve`, {
-      method: "POST",
-      body: { admin_note },
-      token,
-    }),
-
-  rejectEditRequest: (id: string, admin_note: string | null, token: string) =>
-    request<EditRequestRead>(`/api/submissions/edit-requests/${id}/reject`, {
-      method: "POST",
-      body: { admin_note },
-      token,
-    }),
-
-  // ── Phase 4: Edit Requests — public (no auth) ──────────────────────────────
-
-  createEditRequest: (submission_id: string, reason: string) =>
-    request<{ message: string }>("/api/submissions/edit-requests", {
-      method: "POST",
-      body: { submission_id, reason },
-    }),
-
-  getSubmissionByToken: (editToken: string) =>
-    request<EditRequestFormDetail>(`/api/submissions/edit-by-token/${editToken}`, {
-      method: "GET",
-    }),
-
-  applyEditByToken: (
-    editToken: string,
-    payload: { values: any[]; file_uploads: any[] }
-  ) =>
-    request<{ message: string }>(`/api/submissions/edit-by-token/${editToken}`, {
-      method: "PATCH",
-      body: payload,
     }),
 
   // ── Phase 5: Analytics ─────────────────────────────────────────────────────

@@ -18,7 +18,6 @@ from app.models.form import Form
 from app.models.form_field import FormField, FieldType
 from app.models.user import User
 from app.models.submission import Submission, SubmissionStatus
-from app.models.edit_request import EditRequest, EditRequestStatus
 from app.models.analytics_cache import AnalyticsCache
 from app.schemas.form import (
     FormCreate,
@@ -70,7 +69,19 @@ async def list_forms(
 ) -> List[Form]:
     """List all forms, ordered by creation date descending."""
     result = await db.execute(select(Form).order_by(Form.created_at.desc()))
-    return list(result.scalars().all())
+    forms = list(result.scalars().all())
+    
+    # Calculate live non-archived submission counts
+    for form in forms:
+        submission_count = await db.scalar(
+            select(func.count(Submission.id)).where(
+                Submission.form_id == form.id,
+                Submission.status != SubmissionStatus.ARCHIVED
+            )
+        )
+        form.submission_counter = submission_count or 0
+        
+    return forms
 
 
 @router.get("/public/{slug}", response_model=FormDetailRead)
@@ -101,20 +112,14 @@ async def get_admin_stats(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ) -> dict:
-    """Fetch live counts for the admin dashboard."""
+    """Fetch live counts for the admin dashboard (excluding archived submissions)."""
     total_forms = await db.scalar(select(func.count(Form.id)))
-    total_submissions = await db.scalar(select(func.count(Submission.id)))
-    pending_submissions = await db.scalar(
-        select(func.count(Submission.id)).where(Submission.status == SubmissionStatus.PENDING)
-    )
-    edit_requests = await db.scalar(
-        select(func.count(EditRequest.id)).where(EditRequest.status == EditRequestStatus.PENDING)
+    total_submissions = await db.scalar(
+        select(func.count(Submission.id)).where(Submission.status != SubmissionStatus.ARCHIVED)
     )
     return {
         "total_forms": total_forms or 0,
         "total_submissions": total_submissions or 0,
-        "pending_submissions": pending_submissions or 0,
-        "edit_requests": edit_requests or 0,
     }
 
 
@@ -124,7 +129,7 @@ async def get_form(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ) -> Form:
-    """Fetch form details by ID, including its fields."""
+    """Fetch form details by ID, including its fields and active submission counts."""
     result = await db.execute(
         select(Form).options(selectinload(Form.fields)).where(Form.id == id)
     )
@@ -134,6 +139,15 @@ async def get_form(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Form not found.",
         )
+    
+    # Calculate live non-archived submission counts
+    submission_count = await db.scalar(
+        select(func.count(Submission.id)).where(
+            Submission.form_id == form.id,
+            Submission.status != SubmissionStatus.ARCHIVED
+        )
+    )
+    form.submission_counter = submission_count or 0
     return form
 
 
@@ -345,20 +359,9 @@ async def get_form_analytics(
             today_submissions = day.get("count", 0)
             break
 
-    pending_count = cache.status_counts.get(SubmissionStatus.PENDING.value, 0)
-    
-    approved_val = cache.status_counts.get(SubmissionStatus.APPROVED.value, 0)
-    completed_val = cache.status_counts.get(SubmissionStatus.COMPLETED.value, 0)
-    approved_count = approved_val + completed_val
-    
-    approval_rate = (approved_count / cache.total_submissions * 100) if cache.total_submissions > 0 else 0.0
-
     return FormAnalyticsResponse(
         total_submissions=cache.total_submissions,
         today_submissions=today_submissions,
-        approval_rate=round(approval_rate, 1),
-        pending_count=pending_count,
-        status_counts=cache.status_counts,
         daily_counts=cache.daily_counts,
         field_stats=cache.field_stats,
         computed_at=cache.computed_at
