@@ -1,15 +1,15 @@
 # STATE.md — DataForge Project State
 
 > Last Updated: 2026-06-07
-> Current Phase: Phase 6: Functionality Audit and Production-Ready MVP Implementation (Ready to Plan)
+> Current Phase: Phase 6: Functionality Audit and Production-Ready MVP Implementation (Ready for Execution)
 > Current Milestone: v1.0
 
 ---
 
 ## Active Context
 
-- **What we're doing**: Phase 6 added. Preparing to execute functional audit and production MVP implementation.
-- **Immediate next step**: Run `/plan 6` to create execution plans for the audit and gap implementation.
+- **What we're doing**: Phase 6 planned. Audits and MVP implementation checklist ready.
+- **Immediate next step**: Run `/execute 6` to run the functional audit and gap implementation.
 - **Blockers**: None
 
 ---
