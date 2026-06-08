@@ -173,6 +173,13 @@ export interface FormAnalytics {
   computed_at: string;
 }
 
+export interface AdminStats {
+  total_forms: number;
+  total_submissions: number;
+  pending_submissions: number;
+  edit_requests: number;
+}
+
 // ── API client ───────────────────────────────────────────────────────────────
 
 export const api = {
@@ -199,6 +206,9 @@ export const api = {
       "/api/auth/me",
       { method: "GET", token }
     ),
+
+  getDashboardStats: (token: string) =>
+    request<AdminStats>("/api/forms/admin/stats", { method: "GET", token }),
 
   // ── Forms ──────────────────────────────────────────────────────────────────
 

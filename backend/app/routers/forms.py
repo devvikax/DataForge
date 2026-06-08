@@ -6,7 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from openpyxl import Workbook
 from openpyxl.styles import Font
@@ -18,6 +18,7 @@ from app.models.form import Form
 from app.models.form_field import FormField, FieldType
 from app.models.user import User
 from app.models.submission import Submission, SubmissionStatus
+from app.models.edit_request import EditRequest, EditRequestStatus
 from app.models.analytics_cache import AnalyticsCache
 from app.schemas.form import (
     FormCreate,
@@ -25,7 +26,8 @@ from app.schemas.form import (
     FormRead,
     FormDetailRead,
     FieldReorderRequest,
-    FormAnalyticsResponse
+    FormAnalyticsResponse,
+    AdminStatsResponse
 )
 from app.schemas.form_field import FormFieldUpdate, FormFieldRead
 from app.services.analytics import update_analytics_cache
@@ -92,6 +94,28 @@ async def get_public_form(
             detail="This form is currently closed.",
         )
     return form
+
+
+@router.get("/admin/stats", response_model=AdminStatsResponse)
+async def get_admin_stats(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+) -> dict:
+    """Fetch live counts for the admin dashboard."""
+    total_forms = await db.scalar(select(func.count(Form.id)))
+    total_submissions = await db.scalar(select(func.count(Submission.id)))
+    pending_submissions = await db.scalar(
+        select(func.count(Submission.id)).where(Submission.status == SubmissionStatus.PENDING)
+    )
+    edit_requests = await db.scalar(
+        select(func.count(EditRequest.id)).where(EditRequest.status == EditRequestStatus.PENDING)
+    )
+    return {
+        "total_forms": total_forms or 0,
+        "total_submissions": total_submissions or 0,
+        "pending_submissions": pending_submissions or 0,
+        "edit_requests": edit_requests or 0,
+    }
 
 
 @router.get("/{id}", response_model=FormDetailRead)

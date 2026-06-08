@@ -59,3 +59,11 @@ class FormAnalyticsResponse(BaseModel):
     field_stats: dict
     computed_at: datetime
 
+
+class AdminStatsResponse(BaseModel):
+    total_forms: int
+    total_submissions: int
+    pending_submissions: int
+    edit_requests: int
+
+
