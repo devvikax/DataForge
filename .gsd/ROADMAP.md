@@ -138,6 +138,21 @@
 
 ---
 
+### Phase 6: Functionality Audit and Production-Ready MVP Implementation
+**Status**: ⬜ Not Started
+**Objective**: Perform a complete functional audit of the entire DataForge system (end-to-end user flows, dynamic fields storage, submissions, duplicate detection, edit requests, dashboard buttons, exports, charts, and API logic). Identify and replace all UI placeholders, broken APIs, and mock data with real database-driven functionality. Generate a detailed audit report, and systematically fix/verify all gaps to achieve a production-ready MVP.
+**Depends on**: Phase 5
+
+**Deliverables**:
+- Detailed Functional Audit Report (Fully Working, Partially Working, Placeholders, Broken, Missing MVP features)
+- End-to-end verified dynamic Form Builder (drag-and-drop, full field types persist/render)
+- Fully functional submission flow, duplicate detection, review step, and edit requests
+- Production-ready admin dashboard with zero non-functional buttons, placeholders, or broken endpoints
+- Database-backed analytics charts, correct status transitions, and robust CSV/Excel exports
+- End-to-end automated and manual verification proofs for all fixes
+
+---
+
 ## Phase Dependencies
 
 ```
@@ -146,6 +161,7 @@ Phase 1 (Foundation)
             └── Phase 3 (Public Submission)
                     └── Phase 4 (Submissions Management + Edit Requests)
                             └── Phase 5 (Analytics + Export)
+                                    └── Phase 6 (Functional Audit + MVP)
 ```
 
 ---
