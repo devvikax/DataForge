@@ -112,19 +112,15 @@ async def create_submission(
                     detail=f"Submission rejected: Duplicate value detected for field '{field_label}'."
                 )
 
-    # 3. Submission ID Sequence Generation
+    # 3. Submission ID Generation (Collision-Safe Random Hex Based)
     now = datetime.now(timezone.utc)
-    year = now.year
-    start_of_year = datetime(year, 1, 1, tzinfo=timezone.utc)
-
-    seq_query = select(func.count(Submission.id)).where(
-        Submission.form_id == form_id,
-        Submission.submitted_at >= start_of_year
-    )
-    seq_result = await db.execute(seq_query)
-    count = seq_result.scalar() or 0
-    seq_num = count + 1
-    submission_id = f"DF-{year}-{seq_num:06d}"
+    while True:
+        random_hex = uuid.uuid4().hex[:8].upper()
+        submission_id = f"DF-{random_hex}"
+        exists_query = select(Submission.id).where(Submission.submission_id == submission_id)
+        exists_result = await db.execute(exists_query)
+        if not exists_result.scalar_one_or_none():
+            break
 
     # 4. Transaction creation
     try:
