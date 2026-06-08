@@ -46,8 +46,10 @@ export default function AdminFormsPage() {
         toast.success("Form settings updated successfully.");
       } else {
         // Create new form
-        await api.createForm(data, token);
+        const newForm = await api.createForm(data, token);
         toast.success("New form created successfully.");
+        router.push(`/admin/forms/${newForm.id}`);
+        return;
       }
       loadForms();
     } catch (err: any) {
