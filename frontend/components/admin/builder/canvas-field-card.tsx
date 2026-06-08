@@ -119,7 +119,7 @@ export function CanvasFieldCard({
         <Button
           variant="outline"
           onClick={onDelete}
-          className="neo-btn h-8 px-2.5 text-xs text-danger font-bold hover:bg-red-50"
+          className="neo-btn h-8 px-2.5 text-xs text-destructive font-bold hover:bg-destructive/10"
           id={`delete-field-${index}`}
         >
           Delete

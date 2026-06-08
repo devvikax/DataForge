@@ -238,7 +238,7 @@ export default function AdminFormsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(form.id)}
-                              className="font-semibold text-sm text-danger cursor-pointer hover:bg-red-50"
+                              className="font-semibold text-sm text-destructive cursor-pointer hover:bg-destructive/10"
                               id={`delete-form-btn-${form.slug}`}
                             >
                               Delete Form

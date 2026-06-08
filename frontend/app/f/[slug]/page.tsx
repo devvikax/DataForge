@@ -297,7 +297,7 @@ export default function PublicFormPage() {
                         placeholder={field.placeholder || "Enter text..."}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -307,7 +307,7 @@ export default function PublicFormPage() {
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
                         className={`neo-input w-full p-2.5 text-sm min-h-[90px] border-2 resize-y bg-surface ${
-                          hasError ? "border-danger" : "border-border"
+                          hasError ? "border-destructive" : "border-border"
                         }`}
                       />
                     )}
@@ -318,7 +318,7 @@ export default function PublicFormPage() {
                         placeholder={field.placeholder || "0"}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -328,7 +328,7 @@ export default function PublicFormPage() {
                         placeholder={field.placeholder || "name@example.com"}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -338,7 +338,7 @@ export default function PublicFormPage() {
                         placeholder={field.placeholder || "+1 (555) 000-0000"}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -347,7 +347,7 @@ export default function PublicFormPage() {
                         type="date"
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -356,7 +356,7 @@ export default function PublicFormPage() {
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
                         className={`neo-input h-10 w-full px-3 text-sm bg-surface ${
-                          hasError ? "border-danger" : ""
+                          hasError ? "border-destructive" : ""
                         }`}
                       >
                         <option value="">-- Select Option --</option>
@@ -423,7 +423,7 @@ export default function PublicFormPage() {
                     )}
 
                     {hasError && (
-                      <p className="text-xs text-danger font-bold mt-1">
+                      <p className="text-xs text-destructive font-bold mt-1">
                         {validationErrors[field.id]}
                       </p>
                     )}

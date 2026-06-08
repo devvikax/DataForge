@@ -125,7 +125,7 @@ export default function EditRequestPage() {
               {errorMsg && (
                 <div
                   id="edit-request-error"
-                  className="bg-red-50 border-2 border-red-500 p-3 text-sm font-semibold text-red-700"
+                  className="bg-destructive/10 border-2 border-destructive p-3 text-sm font-bold text-destructive"
                   role="alert"
                 >
                   ⚠ {errorMsg}

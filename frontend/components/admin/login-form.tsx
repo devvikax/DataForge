@@ -63,7 +63,7 @@ export function LoginForm() {
 
       {error && (
         <div
-          className="neo-border border-danger bg-red-50 p-3 text-danger text-sm font-medium animate-shake"
+          className="neo-border border-destructive bg-destructive/10 p-3 text-destructive text-sm font-medium animate-shake"
           role="alert"
           id="login-error"
         >

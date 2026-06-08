@@ -74,7 +74,7 @@ export function AdminSidebar() {
         <button
           id="admin-logout-btn"
           onClick={logout}
-          className="w-full neo-btn bg-surface text-foreground px-3 py-2 text-sm font-semibold hover:bg-red-50 hover:text-danger hover:border-danger"
+          className="w-full neo-btn bg-surface text-foreground px-3 py-2 text-sm font-semibold hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
         >
           Sign out
         </button>

@@ -172,7 +172,7 @@ export function FormPreview({
                         placeholder={field.placeholder || "Enter text..."}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -182,7 +182,7 @@ export function FormPreview({
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
                         className={`neo-input w-full p-2.5 text-sm min-h-[90px] border-2 resize-y bg-surface ${
-                          hasError ? "border-danger" : "border-border"
+                          hasError ? "border-destructive" : "border-border"
                         }`}
                       />
                     )}
@@ -193,7 +193,7 @@ export function FormPreview({
                         placeholder={field.placeholder || "0"}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -203,7 +203,7 @@ export function FormPreview({
                         placeholder={field.placeholder || "name@example.com"}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -213,7 +213,7 @@ export function FormPreview({
                         placeholder={field.placeholder || "+1 (555) 000-0000"}
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -222,7 +222,7 @@ export function FormPreview({
                         type="date"
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`neo-input h-10 text-sm ${hasError ? "border-danger" : ""}`}
+                        className={`neo-input h-10 text-sm ${hasError ? "border-destructive" : ""}`}
                       />
                     )}
 
@@ -231,7 +231,7 @@ export function FormPreview({
                         value={value}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
                         className={`neo-input h-10 w-full px-3 text-sm bg-surface ${
-                          hasError ? "border-danger" : ""
+                          hasError ? "border-destructive" : ""
                         }`}
                       >
                         <option value="">-- Select Option --</option>
@@ -290,7 +290,7 @@ export function FormPreview({
 
                     {field.field_type === "file" && (
                       <div className={`neo-card p-4 bg-muted/5 border-dashed border-2 flex flex-col items-center justify-center text-center gap-2 ${
-                        hasError ? "border-danger" : "border-border"
+                        hasError ? "border-destructive" : "border-border"
                       }`}>
                         <span className="text-2xl" role="img" aria-label="Upload placeholder">📎</span>
                         <div className="text-xs font-bold">Upload files here</div>
@@ -325,7 +325,7 @@ export function FormPreview({
 
                     {/* ERROR FEEDBACK */}
                     {hasError && (
-                      <p className="text-xs text-danger font-bold mt-1" id={`error-${field.id}`}>
+                      <p className="text-xs text-destructive font-bold mt-1" id={`error-${field.id}`}>
                         {validationErrors[field.id]}
                       </p>
                     )}

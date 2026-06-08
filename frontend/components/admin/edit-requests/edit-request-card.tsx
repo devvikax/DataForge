@@ -133,7 +133,7 @@ export function EditRequestCard({ request, onUpdated }: EditRequestCardProps) {
               </div>
             )}
             {isExpired && (
-              <div className="bg-red-50 border-2 border-red-500 p-2 text-xs font-bold text-red-800">
+              <div className="bg-destructive/10 border-2 border-destructive p-2 text-xs font-bold text-destructive">
                 ⏰ This link has expired.
               </div>
             )}
@@ -166,11 +166,11 @@ export function EditRequestCard({ request, onUpdated }: EditRequestCardProps) {
 
         {/* Rejected: show admin note */}
         {request.status === "rejected" && request.admin_note && (
-          <div className="bg-red-50 border-2 border-red-200 p-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-red-600 mb-1">
+          <div className="bg-destructive/10 border-2 border-destructive p-3 text-destructive">
+            <p className="text-xs font-bold uppercase tracking-wider mb-1">
               Rejection Note
             </p>
-            <p className="text-sm">{request.admin_note}</p>
+            <p className="text-sm font-semibold">{request.admin_note}</p>
           </div>
         )}
 
@@ -202,7 +202,7 @@ export function EditRequestCard({ request, onUpdated }: EditRequestCardProps) {
                 id={`reject-btn-${request.id}`}
                 onClick={handleReject}
                 disabled={isActing}
-                className="neo-btn bg-red-500 text-white hover:bg-red-600 font-bold text-sm h-9 px-4 flex-1"
+                className="neo-btn bg-destructive text-white hover:bg-destructive/90 font-bold text-sm h-9 px-4 flex-1"
               >
                 {isActing ? "Processing..." : "✗ Reject"}
               </Button>

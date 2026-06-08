@@ -176,7 +176,7 @@ export function FileDropzone({
                 type="button"
                 variant="outline"
                 onClick={() => handleRemoveFile(idx)}
-                className="neo-btn h-7 px-2 text-danger hover:bg-red-50 text-[10px] shrink-0"
+                className="neo-btn h-7 px-2 text-destructive hover:bg-destructive/10 text-[10px] shrink-0"
               >
                 Remove
               </Button>
@@ -195,7 +195,7 @@ export function FileDropzone({
                 <span>{item.error ? "Failed" : `${item.progress}%`}</span>
               </div>
               {item.error ? (
-                <p className="text-danger text-[10px]">{item.error}</p>
+                <p className="text-destructive text-[10px]">{item.error}</p>
               ) : (
                 <div className="h-2 border border-border bg-surface relative overflow-hidden">
                   <div
@@ -219,7 +219,7 @@ export function FileDropzone({
           onClick={() => fileInputRef.current?.click()}
           className={`neo-card p-6 border-dashed border-2 flex flex-col items-center justify-center text-center gap-2 cursor-pointer transition-colors ${
             isDragActive ? "bg-accent/5 border-accent" : "bg-surface hover:bg-muted/5"
-          } ${hasError ? "border-danger" : "border-border"}`}
+          } ${hasError ? "border-destructive" : "border-border"}`}
         >
           <span className="text-3xl" role="img" aria-label="Dropzone upload icon">
             📥

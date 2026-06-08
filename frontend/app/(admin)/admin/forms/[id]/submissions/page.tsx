@@ -296,7 +296,7 @@ export default function SubmissionsPage() {
                 setStatusFilter("");
                 setPage(1);
               }}
-              className="neo-btn bg-surface hover:bg-red-50 text-sm h-9 px-3 text-danger border-danger"
+              className="neo-btn bg-surface hover:bg-destructive/10 text-sm h-9 px-3 text-destructive border-destructive"
             >
               Clear Filters
             </Button>
@@ -494,7 +494,7 @@ export default function SubmissionsPage() {
             <Button
               id="bulk-archive-btn"
               onClick={handleBulkArchive}
-              className="neo-btn bg-surface hover:bg-red-50 text-danger border-danger h-8 px-3 text-xs font-bold"
+              className="neo-btn bg-surface hover:bg-destructive/10 text-destructive border-destructive h-8 px-3 text-xs font-bold"
             >
               Archive Selected
             </Button>

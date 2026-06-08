@@ -299,7 +299,7 @@ export function PropertyPanel({
                   <Button
                     variant="outline"
                     onClick={() => handleRemoveOption(idx)}
-                    className="neo-btn h-8 w-8 p-0 text-danger hover:bg-red-50"
+                    className="neo-btn h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                     title="Remove Option"
                     disabled={(selectedField.options || []).length <= 1}
                   >
@@ -409,7 +409,7 @@ export function PropertyPanel({
                     <Button
                       variant="outline"
                       onClick={() => handleRemoveCondition(idx)}
-                      className="h-5 px-1.5 text-[10px] text-danger hover:bg-red-50 border-none"
+                      className="h-5 px-1.5 text-[10px] text-destructive hover:bg-destructive/10 border-none"
                     >
                       Remove
                     </Button>
