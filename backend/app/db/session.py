@@ -1,37 +1,29 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+import os
 from typing import AsyncGenerator
+import google.oauth2.service_account
+import google.auth
+import google.auth.credentials
+import google.auth.exceptions
+from google.cloud import firestore
 
 from app.core.config import settings
 
-is_sqlite = settings.DATABASE_URL.startswith("sqlite")
-engine_kwargs = {
-    "echo": settings.DEBUG,
-}
+# Initialize Google Cloud Firestore AsyncClient
+try:
+    if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
+        cred = google.oauth2.service_account.Credentials.from_service_account_file(
+            settings.FIREBASE_CREDENTIALS_PATH
+        )
+        db = firestore.AsyncClient(credentials=cred, project=cred.project_id)
+    else:
+        # Initialize using default credentials or project ID
+        db = firestore.AsyncClient(project=settings.FIREBASE_PROJECT_ID)
+except google.auth.exceptions.DefaultCredentialsError:
+    # Fallback to anonymous credentials so uvicorn can start up without crashing.
+    # This is also useful for local emulator testing.
+    anon_cred = google.auth.credentials.AnonymousCredentials()
+    db = firestore.AsyncClient(project=settings.FIREBASE_PROJECT_ID, credentials=anon_cred)
 
-if not is_sqlite:
-    engine_kwargs.update({
-        "pool_pre_ping": True,
-        "pool_size": 10,
-        "max_overflow": 20,
-    })
-
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    **engine_kwargs
-)
-
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
-
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+async def get_db() -> AsyncGenerator[firestore.AsyncClient, None]:
+    """Dependency to retrieve the async Firestore client."""
+    yield db

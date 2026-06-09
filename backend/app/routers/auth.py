@@ -1,6 +1,6 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from google.cloud import firestore
 
 from app.db.session import get_db
 from app.core.config import settings
@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/login", response_model=TokenResponse)
 async def login(
     credentials: LoginRequest,
-    db: AsyncSession = Depends(get_db),
+    db: firestore.AsyncClient = Depends(get_db),
 ) -> TokenResponse:
     """Authenticate admin and return JWT access token."""
     user = await authenticate_user(db, credentials.username, credentials.password)

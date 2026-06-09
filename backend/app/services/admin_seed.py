@@ -1,6 +1,5 @@
 import logging
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from google.cloud import firestore
 
 from app.models.user import User
 from app.core.config import settings
@@ -9,14 +8,12 @@ from app.core.security import hash_password
 logger = logging.getLogger(__name__)
 
 
-async def seed_admin(session: AsyncSession) -> None:
-    """Create the admin user if it doesn't already exist."""
-    result = await session.execute(
-        select(User).where(User.username == settings.ADMIN_USERNAME)
-    )
-    existing = result.scalar_one_or_none()
+async def seed_admin(db: firestore.AsyncClient) -> None:
+    """Create the admin user in Firestore if it doesn't already exist."""
+    users_ref = db.collection("users")
+    docs = await users_ref.where("username", "==", settings.ADMIN_USERNAME).limit(1).get()
 
-    if existing:
+    if docs:
         logger.info("Admin user already exists — skipping seed.")
         return
 
@@ -26,6 +23,14 @@ async def seed_admin(session: AsyncSession) -> None:
         is_admin=True,
         is_active=True,
     )
-    session.add(admin)
-    await session.commit()
-    logger.info(f"Admin user '{settings.ADMIN_USERNAME}' created successfully.")
+    
+    admin_dict = {
+        "id": str(admin.id),
+        "username": admin.username,
+        "hashed_password": admin.hashed_password,
+        "is_admin": admin.is_admin,
+        "is_active": admin.is_active
+    }
+    
+    await users_ref.document(str(admin.id)).set(admin_dict)
+    logger.info(f"Admin user '{settings.ADMIN_USERNAME}' created successfully in Firestore.")

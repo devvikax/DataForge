@@ -2,8 +2,7 @@ import uuid
 import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from google.cloud import firestore
 import cloudinary
 import cloudinary.uploader
 
@@ -31,16 +30,38 @@ else:
 async def upload_file(
     file: UploadFile = File(...),
     form_field_id: uuid.UUID = Form(...),
-    db: AsyncSession = Depends(get_db),
+    db: firestore.AsyncClient = Depends(get_db),
 ):
     """Uploads file to Cloudinary after verifying constraints against form field config.
     Falls back to mock response if Cloudinary keys are unconfigured.
     """
-    # Fetch field
-    field_result = await db.execute(
-        select(FormField).where(FormField.id == form_field_id)
-    )
-    field = field_result.scalar_one_or_none()
+    # Find the field in forms from Firestore
+    forms_docs = await db.collection("forms").get()
+    field = None
+    for doc in forms_docs:
+        data = doc.to_dict()
+        fields_data = data.get("fields", [])
+        for f in fields_data:
+            if f.get("id") == str(form_field_id):
+                field = FormField(
+                    id=uuid.UUID(f.get("id")),
+                    form_id=uuid.UUID(doc.id),
+                    field_type=FieldType(f.get("field_type")),
+                    label=f.get("label", ""),
+                    placeholder=f.get("placeholder"),
+                    description=f.get("description"),
+                    default_value=f.get("default_value"),
+                    is_required=f.get("is_required", False),
+                    order=f.get("order", 0),
+                    options=f.get("options"),
+                    conditions=f.get("conditions"),
+                    file_accepted_types=f.get("file_accepted_types"),
+                    file_max_size_mb=f.get("file_max_size_mb"),
+                    file_max_count=f.get("file_max_count"),
+                )
+                break
+        if field:
+            break
     
     if not field:
         raise HTTPException(
@@ -55,13 +76,12 @@ async def upload_file(
         )
 
     # 1. Validate file size
-    # Seek to end of the underlying file to get size
     file.file.seek(0, 2)
     size_bytes = file.file.tell()
-    file.file.seek(0)  # Reset to start
+    file.file.seek(0)
     
     size_mb = size_bytes / (1024 * 1024)
-    max_size_mb = field.file_max_size_mb or 5  # default 5MB
+    max_size_mb = field.file_max_size_mb or 5
     
     if size_mb > max_size_mb:
         raise HTTPException(
@@ -90,7 +110,6 @@ async def upload_file(
 
     if is_configured:
         try:
-            # Upload using Cloudinary SDK
             file_bytes = await file.read()
             upload_result = cloudinary.uploader.upload(
                 file_bytes,
@@ -109,7 +128,6 @@ async def upload_file(
     else:
         logger.warning(f"Mock upload fallback triggered for file: {file.filename}")
         mock_id = f"mock_{uuid.uuid4().hex}"
-        # URL escape filename just in case
         safe_filename = file.filename.replace(" ", "_") if file.filename else "file"
         cloudinary_public_id = f"dataforge/mock/{mock_id}"
         cloudinary_url = f"http://localhost:8000/mock-uploads/{mock_id}/{safe_filename}"

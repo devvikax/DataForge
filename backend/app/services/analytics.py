@@ -1,46 +1,37 @@
 import uuid
 from datetime import datetime, timezone, timedelta
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
+from google.cloud import firestore
 
-from app.models.form import Form
-from app.models.form_field import FormField, FieldType
-from app.models.submission import Submission, SubmissionStatus
-from app.models.submission_value import SubmissionValue
-from app.models.file_upload import FileUpload
+from app.models.form_field import FieldType
+from app.models.submission import SubmissionStatus
 from app.models.analytics_cache import AnalyticsCache
+from app.utils.converters import dict_to_form, dict_to_submission
 
 
-async def update_analytics_cache(form_id: uuid.UUID, db: AsyncSession) -> AnalyticsCache:
-    """Computes all form submission aggregates and persists in analytics_cache table.
+async def update_analytics_cache(form_id: uuid.UUID, db: firestore.AsyncClient) -> AnalyticsCache:
+    """Computes all form submission aggregates and persists in analytics_cache collection.
     Returns the updated AnalyticsCache model instance.
     """
     # 1. Fetch form
-    form_res = await db.execute(
-        select(Form).options(selectinload(Form.fields)).where(Form.id == form_id)
-    )
-    form = form_res.scalar_one_or_none()
-    if not form:
+    form_doc = await db.collection("forms").document(str(form_id)).get()
+    if not form_doc.exists:
         raise ValueError("Form not found")
+    form = dict_to_form(form_doc.id, form_doc.to_dict())
 
-    # 2. Fetch all submissions (including EAV values and file uploads)
-    submissions_res = await db.execute(
-        select(Submission)
-        .options(
-            selectinload(Submission.values),
-            selectinload(Submission.file_uploads)
-        )
-        .where(Submission.form_id == form_id)
-    )
-    submissions = submissions_res.scalars().all()
+    # 2. Fetch all submissions
+    subs_docs = await db.collection("submissions").where("form_id", "==", str(form_id)).get()
+    submissions = [dict_to_submission(doc.id, doc.to_dict()) for doc in subs_docs]
 
     total_submissions = len(submissions)
 
-    # 3. Status counts (initialize all statuses from enum)
+    # 3. Status counts
     status_counts = {status.value: 0 for status in SubmissionStatus}
     for sub in submissions:
-        status_counts[sub.status.value] += 1
+        status_value = sub.status.value if hasattr(sub.status, "value") else str(sub.status)
+        if status_value in status_counts:
+            status_counts[status_value] += 1
+        else:
+            status_counts[status_value] = 1
 
     # 4. Daily counts (last 30 days)
     today = datetime.now(timezone.utc).date()
@@ -68,14 +59,13 @@ async def update_analytics_cache(form_id: uuid.UUID, db: AsyncSession) -> Analyt
 
         for sub in submissions:
             if field.field_type == FieldType.FILE:
-                # File uploads check metadata table
                 file_items = [upload for upload in sub.file_uploads if upload.field_id == field.id]
                 if file_items:
                     response_count += 1
                     for item in file_items:
-                        unique_values.add(item.cloudinary_url)
+                        if item.cloudinary_url:
+                            unique_values.add(item.cloudinary_url)
             else:
-                # Standard fields check EAV table
                 sub_val = next((v for v in sub.values if v.field_id == field.id), None)
                 if sub_val:
                     if sub_val.value_json is not None:
@@ -112,29 +102,27 @@ async def update_analytics_cache(form_id: uuid.UUID, db: AsyncSession) -> Analyt
         if is_choice_field:
             field_stats[field_id_str]["value_distribution"] = value_distribution
 
-    # 6. Save or update cache row
-    cache_res = await db.execute(
-        select(AnalyticsCache).where(AnalyticsCache.form_id == form_id)
-    )
-    cache = cache_res.scalar_one_or_none()
-
+    # 6. Save or update cache document in Firestore
+    cache_ref = db.collection("analytics_cache").document(str(form_id))
     now = datetime.now(timezone.utc)
-    if cache:
-        cache.total_submissions = total_submissions
-        cache.status_counts = status_counts
-        cache.daily_counts = daily_counts
-        cache.field_stats = field_stats
-        cache.computed_at = now
-    else:
-        cache = AnalyticsCache(
-            form_id=form_id,
-            total_submissions=total_submissions,
-            status_counts=status_counts,
-            daily_counts=daily_counts,
-            field_stats=field_stats,
-            computed_at=now
-        )
-        db.add(cache)
+    
+    cache_data = {
+        "id": str(form_id),
+        "form_id": str(form_id),
+        "total_submissions": total_submissions,
+        "status_counts": status_counts,
+        "daily_counts": daily_counts,
+        "field_stats": field_stats,
+        "computed_at": now
+    }
+    await cache_ref.set(cache_data)
 
-    await db.flush()
-    return cache
+    return AnalyticsCache(
+        id=form_id,
+        form_id=form_id,
+        total_submissions=total_submissions,
+        status_counts=status_counts,
+        daily_counts=daily_counts,
+        field_stats=field_stats,
+        computed_at=now
+    )

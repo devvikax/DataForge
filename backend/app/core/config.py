@@ -15,8 +15,15 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
 
-    # Database
-    DATABASE_URL: str
+    # Firebase Firestore Configuration
+    FIREBASE_PROJECT_ID: str = "playsphere-ai"
+    FIREBASE_CREDENTIALS_PATH: str | None = None
+    FIREBASE_API_KEY: str | None = None
+    FIREBASE_AUTH_DOMAIN: str | None = None
+    FIREBASE_STORAGE_BUCKET: str | None = None
+    FIREBASE_MESSAGING_SENDER_ID: str | None = None
+    FIREBASE_APP_ID: str | None = None
+    FIREBASE_MEASUREMENT_ID: str | None = None
 
     # Security
     SECRET_KEY: str

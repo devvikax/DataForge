@@ -1,30 +1,17 @@
 import uuid
-from sqlalchemy import Text, ForeignKey, JSON, Index
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base
 
-
-class SubmissionValue(Base):
-    """EAV table storing individual field values per submission."""
-    __tablename__ = "submission_values"
-
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    submission_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("submissions.id", ondelete="CASCADE"), nullable=False
-    )
-    field_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("form_fields.id", ondelete="CASCADE"), nullable=False
-    )
-
-    # Plain text value for text/number/email/phone/date/radio/dropdown
-    value_text: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    # JSON value for checkbox (array) and file (array of URLs)
-    value_json: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
-
-    # Relationships
-    submission: Mapped["Submission"] = relationship("Submission", back_populates="values")
-
-    __table_args__ = (
-        Index("ix_submission_values_submission_field", "submission_id", "field_id"),
-    )
+class SubmissionValue:
+    """Plain Python SubmissionValue class for Firestore backing."""
+    def __init__(
+        self,
+        id=None,
+        submission_id=None,
+        field_id=None,
+        value_text=None,
+        value_json=None
+    ):
+        self.id = id if isinstance(id, uuid.UUID) else uuid.UUID(id) if id else uuid.uuid4()
+        self.submission_id = submission_id if isinstance(submission_id, uuid.UUID) else uuid.UUID(submission_id) if submission_id else None
+        self.field_id = field_id if isinstance(field_id, uuid.UUID) else uuid.UUID(field_id) if field_id else None
+        self.value_text = value_text
+        self.value_json = value_json

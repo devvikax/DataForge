@@ -9,10 +9,17 @@ from app.routers import health, auth, forms, uploads, submissions
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: seed admin user if not exists
-    from app.db.session import AsyncSessionLocal
-    from app.services.admin_seed import seed_admin
-    async with AsyncSessionLocal() as session:
-        await seed_admin(session)
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        from app.db.session import db
+        from app.services.admin_seed import seed_admin
+        await seed_admin(db)
+    except Exception as e:
+        logger.warning(
+            f"Admin seed skipped — could not connect to Firestore at startup: {e}. "
+            "Ensure FIREBASE_CREDENTIALS_PATH or GOOGLE_APPLICATION_CREDENTIALS is set."
+        )
     yield
     # Shutdown: nothing to clean up in v1
 

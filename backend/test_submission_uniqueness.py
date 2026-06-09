@@ -11,7 +11,7 @@ async def test_submission_uniqueness():
         # 1. Login as admin
         login_resp = await client.post(
             f"{API_BASE}/api/auth/login",
-            json={"username": "admin", "password": "adminpassword123"}
+            json={"username": "admin", "password": "adminpassword3012"}
         )
         assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
         token = login_resp.json()["access_token"]
