@@ -83,7 +83,7 @@ erDiagram
 ## 🛠️ Tech Stack & Components
 
 <p align="center">
-  <img src="docs/images/tech_stack_graphic.png" alt="Tech Stack Graphic" width="100%">
+  <img src="docs/images/tech_stack_graphic.png" alt="Tech Stack Graphic" width="40%">
 </p>
 
 ### Frontend Features
