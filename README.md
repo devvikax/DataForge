@@ -1,9 +1,4 @@
 # DataForge
-
-<p align="center">
-  <img src="docs/images/dataforge_banner.png" alt="DataForge Banner" width="100%">
-</p>
-
 <p align="center">
   <a href="#-tech-stack"><img src="https://img.shields.io/badge/Next.js-16.2.7-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js"></a>
   <a href="#-tech-stack"><img src="https://img.shields.io/badge/FastAPI-0.115.5-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
