@@ -42,6 +42,8 @@ export default function FormReportsPage() {
   const [showTimestamp, setShowTimestamp] = useState(true);
   const [showSignColumn, setShowSignColumn] = useState(false);
   const [themeColor, setThemeColor] = useState("black"); // black, navy, emerald, slate
+  const [pageOrientation, setPageOrientation] = useState<"portrait" | "landscape">("portrait");
+  const [autoFitColumns, setAutoFitColumns] = useState(true);
 
   // Custom Blank Columns Creator
   const [customBlankColumns, setCustomBlankColumns] = useState<string[]>([]);
@@ -104,6 +106,8 @@ export default function FormReportsPage() {
     setShowTimestamp(true);
     setShowSignColumn(false);
     setThemeColor("black");
+    setPageOrientation("portrait");
+    setAutoFitColumns(true);
     setCustomBlankColumns([]);
     setNewBlankColName("");
 
@@ -148,8 +152,37 @@ export default function FormReportsPage() {
 
   const filteredSubmissions = submissions;
 
+  // Calculate visible columns to auto-fit
+  const visibleColCount =
+    (showSNo ? 1 : 0) +
+    (selectedColumns.has("submission_id") ? 1 : 0) +
+    (selectedColumns.has("submitted_at") ? 1 : 0) +
+    fields.filter((f) => selectedColumns.has(f.id)).length +
+    (showSignColumn ? 1 : 0) +
+    customBlankColumns.length;
+
+  let dynamicFontSize = fontSize;
+  let dynamicPadding = tableStyle === "compact" ? "p-1.5 text-[10px]" : "p-3";
+  let dynamicPaddingPrint = tableStyle === "compact" ? "4px" : "8px";
+
+  if (autoFitColumns) {
+    if (visibleColCount > 12) {
+      dynamicFontSize = "6.5pt";
+      dynamicPadding = "p-1 text-[9px]";
+      dynamicPaddingPrint = "3px";
+    } else if (visibleColCount > 8) {
+      dynamicFontSize = "8pt";
+      dynamicPadding = "p-1.5 text-[10px]";
+      dynamicPaddingPrint = "4px";
+    } else if (visibleColCount > 5) {
+      dynamicFontSize = "9pt";
+      dynamicPadding = "p-2 text-[11px]";
+      dynamicPaddingPrint = "6px";
+    }
+  }
+
   // Table style helpers for live preview rendering
-  const cellPadding = tableStyle === "compact" ? "p-1.5 text-[10px]" : "p-3";
+  const cellPadding = dynamicPadding;
   const cellBorder = (tableStyle === "boxy" || tableStyle === "compact") ? "border" : "border-b border-neutral-200";
   const rowBg = tableStyle === "zebra" ? "odd:bg-white even:bg-neutral-50" : "bg-white hover:bg-neutral-50";
   const headerBorder = (tableStyle === "boxy" || tableStyle === "compact") ? "border" : "border-b-2";
@@ -159,8 +192,17 @@ export default function FormReportsPage() {
       {/* Style block for printing */}
       <style jsx global>{`
         @page {
-          size: A4;
+          size: A4 ${pageOrientation};
           margin: 1.5cm;
+        }
+        #printable-report-area table {
+          table-layout: auto !important;
+          width: 100% !important;
+        }
+        #printable-report-area th, 
+        #printable-report-area td {
+          word-break: break-word !important;
+          overflow-wrap: anywhere !important;
         }
         @media print {
           /* Hide sidebars, topbars, and configuration controls completely from layout */
@@ -197,20 +239,23 @@ export default function FormReportsPage() {
             box-shadow: none !important;
             border: none !important;
             padding: 0 !important;
-            font-size: ${fontSize} !important;
+            font-size: ${dynamicFontSize} !important;
           }
           
           /* Table Styles */
           table {
             border-collapse: collapse !important;
             width: 100% !important;
+            table-layout: auto !important;
           }
           
           th, td {
-            padding: ${tableStyle === "compact" ? "4px" : "8px"} !important;
+            padding: ${dynamicPaddingPrint} !important;
             text-align: left !important;
-            font-size: ${fontSize} !important;
+            font-size: ${dynamicFontSize} !important;
             background: transparent !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
           }
 
           th {
@@ -336,6 +381,18 @@ export default function FormReportsPage() {
 
             <div className="space-y-3">
               <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider mb-1 font-mono text-muted-foreground">Page Orientation</label>
+                <select
+                  value={pageOrientation}
+                  onChange={(e) => setPageOrientation(e.target.value as "portrait" | "landscape")}
+                  className="neo-input h-9 px-2 text-xs bg-card w-full font-sans font-medium"
+                >
+                  <option value="portrait">Portrait (A4)</option>
+                  <option value="landscape">Landscape (A4)</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider mb-1 font-mono text-muted-foreground">Theme Accent</label>
                 <select
                   value={themeColor}
@@ -364,7 +421,7 @@ export default function FormReportsPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider mb-1 font-mono text-muted-foreground">Font Size</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider mb-1 font-mono text-muted-foreground">Font Size Base</label>
                 <select
                   value={fontSize}
                   onChange={(e) => setFontSize(e.target.value)}
@@ -377,6 +434,16 @@ export default function FormReportsPage() {
               </div>
 
               <div className="space-y-2 pt-1 border-t border-dashed border-border mt-3">
+                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoFitColumns}
+                    onChange={(e) => setAutoFitColumns(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-accent"
+                  />
+                  Auto-Fit Columns Size
+                </label>
+
                 <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                   <input
                     type="checkbox"
@@ -407,8 +474,16 @@ export default function FormReportsPage() {
                   Add Checklist Column
                 </label>
               </div>
-            </div>
 
+              {autoFitColumns && visibleColCount > 8 && (
+                <div className="bg-accent/15 border-l-4 border-accent p-2.5 mt-2 font-mono text-[10px] text-foreground/85 leading-relaxed">
+                  ⚠️ <strong>Auto-Fit active:</strong> Adjusting table size to fit {visibleColCount} columns on A4. Consider switching to <strong>Landscape</strong>.
+                </div>
+              )}
+            </div>
+          </NeoCard>
+
+          <NeoCard className="p-4 bg-surface shadow-[4px_4px_0px_#000000] rounded-none border-2 border-black space-y-4">
             <button
               onClick={handleReset}
               className="w-full mt-2 neo-btn bg-destructive/10 text-destructive hover:bg-destructive hover:text-white hover:border-destructive font-bold text-xs py-2 transition-all duration-100"
@@ -518,38 +593,50 @@ export default function FormReportsPage() {
         <div className="col-span-12 lg:col-span-9 h-full flex flex-col overflow-y-auto">
           <NeoCard
             id="printable-report-area"
-            className="p-8 bg-white text-black border-2 min-h-[29.7cm] w-full max-w-[21cm] mx-auto flex flex-col rounded-none shadow-[4px_4px_0px_#000000]"
+            className={`p-8 bg-white text-black border-2 mx-auto flex flex-col rounded-none shadow-[4px_4px_0px_#000000] transition-all duration-200 ${
+              pageOrientation === "landscape"
+                ? "max-w-[29.7cm] min-h-[21cm]"
+                : "max-w-[21cm] min-h-[29.7cm]"
+            }`}
             style={{ 
-              fontSize: fontSize,
+              fontSize: dynamicFontSize,
               borderColor: THEME_COLORS[themeColor].hex 
             }}
           >
             {/* Report Header */}
             <div 
-              className="border-b-4 pb-4 mb-6"
+              className="border-b-4 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4"
               style={{ borderColor: THEME_COLORS[themeColor].hex }}
             >
-              <h2 
-                className="text-2xl font-black uppercase tracking-tight font-mono"
-                style={{ color: THEME_COLORS[themeColor].hex }}
+              <div className="flex-1">
+                <h2 
+                  className="text-2xl font-black uppercase tracking-tight font-mono leading-none"
+                  style={{ color: THEME_COLORS[themeColor].hex }}
+                >
+                  {reportTitle || "REPORT"}
+                </h2>
+                {reportSubtitle && (
+                  <p className="text-sm font-bold mt-1.5 font-sans" style={{ color: themeColor === "black" ? "#000000" : THEME_COLORS[themeColor].hex }}>
+                    {reportSubtitle}
+                  </p>
+                )}
+                {reportDescription && (
+                  <p className="text-xs font-mono text-muted-foreground mt-3 border-l-4 pl-3 py-1 italic bg-neutral-50/50" style={{ borderColor: THEME_COLORS[themeColor].hex }}>
+                    {reportDescription}
+                  </p>
+                )}
+              </div>
+              
+              <div 
+                className="p-2.5 border font-mono text-[9px] text-muted-foreground text-right shrink-0 bg-neutral-50/50"
+                style={{ borderColor: THEME_COLORS[themeColor].hex }}
               >
-                {reportTitle || "REPORT"}
-              </h2>
-              {reportSubtitle && (
-                <p className="text-md font-bold mt-1" style={{ color: themeColor === "black" ? "#000000" : THEME_COLORS[themeColor].hex }}>
-                  {reportSubtitle}
-                </p>
-              )}
-              {reportDescription && (
-                <p className="text-xs font-mono text-muted-foreground mt-3 border-l-4 pl-3 py-1 italic bg-neutral-50/50" style={{ borderColor: THEME_COLORS[themeColor].hex }}>
-                  {reportDescription}
-                </p>
-              )}
-              {showTimestamp && (
-                <p className="text-xs font-mono text-muted-foreground mt-2">
-                  Generated: {new Date().toLocaleString()} | Count: {filteredSubmissions.length}
-                </p>
-              )}
+                <div><strong>RECORDS:</strong> {filteredSubmissions.length}</div>
+                {showTimestamp && (
+                  <div className="mt-1"><strong>DATE:</strong> {new Date().toLocaleDateString()}</div>
+                )}
+                <div className="mt-1"><strong>PLATFORM:</strong> DATAFORGE</div>
+              </div>
             </div>
 
             {/* Submissions List Table */}
